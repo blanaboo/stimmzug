@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Stimmzug</string>
+    <string name="tagline">Intonationstrainer für Tuba</string>
+    <string name="reference_note">%1$s · %2$s Hz</string>
+    <string name="status_in_development">In Entwicklung · Version %1$s</string>
+</resources>

@@ -1,0 +1,49 @@
+name: "Praxistest-Feedback"
+description: Rückmeldung aus dem Üben mit echter Tuba.
+labels: ["field-test"]
+body:
+  - type: dropdown
+    id: instrument
+    attributes:
+      label: Instrument
+      options:
+        - F-Tuba
+        - B-Tuba
+    validations:
+      required: true
+  - type: dropdown
+    id: ausgabe
+    attributes:
+      label: Audio-Ausgabe
+      options:
+        - Handy-Lautsprecher
+        - Kabel-Kopfhörer
+        - Bluetooth-Kopfhörer
+        - Bluetooth-Lautsprecher
+    validations:
+      required: true
+  - type: input
+    id: einstellungen
+    attributes:
+      label: Einstellungen
+      placeholder: z. B. Toleranz ±5 ct, Haltedauer 3 s, A4 = 440 Hz
+  - type: textarea
+    id: gut
+    attributes:
+      label: Was lief gut?
+  - type: textarea
+    id: schlecht
+    attributes:
+      label: Was lief nicht gut?
+      description: z. B. "Ton war sauber, wurde aber nicht erkannt" oder "Bestätigung kam, obwohl ich nicht gespielt habe"
+    validations:
+      required: true
+  - type: input
+    id: toene
+    attributes:
+      label: Betroffene Töne
+      placeholder: z. B. Kontra-B, großes F, kleines f
+  - type: input
+    id: sitzung
+    attributes:
+      label: Sitzungs-ID / Datum der Sitzung

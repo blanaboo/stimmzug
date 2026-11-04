@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Progress ring (the app's "hold" motif) wrapped around a tuning-slide U shape. 108dp canvas, 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 3/4 progress ring -->
+    <path
+        android:pathData="M54,27 A27,27 0 1,1 27,54"
+        android:strokeWidth="5"
+        android:strokeColor="#FFD9A93F"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <!-- tuning slide: U-shaped tube -->
+    <path
+        android:pathData="M45,40 L45,58 A9,9 0 0,0 63,58 L63,40"
+        android:strokeWidth="5"
+        android:strokeColor="#FFECE7DE"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <!-- hit marker -->
+    <path
+        android:pathData="M27,54 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:fillColor="#FF5BC27A" />
+</vector>

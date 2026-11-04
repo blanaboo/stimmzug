@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window theme shown before Compose draws; the Compose theme lives in ui/theme. -->
+    <style name="Theme.Stimmzug" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/stage_background</item>
+    </style>
+</resources>

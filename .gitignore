@@ -1,0 +1,29 @@
+# Gradle / build output
+.gradle/
+.kotlin/
+build/
+local.properties
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Signing material - never commit
+*.jks
+*.keystore
+keystore.properties
+
+# Local field-test data (recordings of real playing stay on this machine)
+testdata/local/
+
+# Machine-specific notes for Claude Code
+CLAUDE.local.md
+
+# OS / misc
+.DS_Store
+Thumbs.db
+*.log

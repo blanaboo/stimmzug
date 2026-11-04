@@ -1,0 +1,20 @@
+name: "Idee / Wunsch"
+description: Neue Funktion oder Verbesserung vorschlagen.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: wunsch
+    attributes:
+      label: Was möchtest du erreichen?
+      description: Welches Problem beim Üben soll gelöst werden?
+    validations:
+      required: true
+  - type: textarea
+    id: vorschlag
+    attributes:
+      label: Vorschlag
+      description: Wie könnte es aussehen oder funktionieren?
+  - type: textarea
+    id: alternativen
+    attributes:
+      label: Alternativen / Notizen

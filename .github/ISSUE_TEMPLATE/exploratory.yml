@@ -1,0 +1,52 @@
+name: "Explorativer Testbefund"
+description: Befund aus einer explorativen Testsitzung (Charter).
+labels: ["exploratory"]
+body:
+  - type: input
+    id: charter
+    attributes:
+      label: Charter / Testsitzung
+      placeholder: z. B. C3 Lautsprecher-Übersprechen, docs/qa/sessions/2026-11-20-c3.md
+    validations:
+      required: true
+  - type: input
+    id: umgebung
+    attributes:
+      label: Umgebung
+      placeholder: z. B. Emulator API 37 / Pixel 8, Build 0.1.0-debug (abc1234)
+    validations:
+      required: true
+  - type: dropdown
+    id: schwere
+    attributes:
+      label: Schweregrad
+      options:
+        - kritisch (Absturz, Datenverlust, Übung unbrauchbar)
+        - hoch (Kernfunktion falsch)
+        - mittel (störend, Workaround vorhanden)
+        - niedrig (kosmetisch)
+    validations:
+      required: true
+  - type: textarea
+    id: beobachtung
+    attributes:
+      label: Beobachtung
+    validations:
+      required: true
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Schritte zum Nachstellen
+    validations:
+      required: true
+  - type: textarea
+    id: erwartet
+    attributes:
+      label: Erwartetes Verhalten
+    validations:
+      required: true
+  - type: textarea
+    id: belege
+    attributes:
+      label: Belege (Logcat, Screenshots, UI-Dump)
+      render: text
