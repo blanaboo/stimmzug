@@ -20,6 +20,9 @@ keystore.properties
 # Local field-test data (recordings of real playing stay on this machine)
 testdata/local/
 
+# Downloaded test recordings (see docs/testdata.md), verified by checksum, never committed
+testdata/cache/
+
 # Machine-specific notes for Claude Code
 CLAUDE.local.md
 

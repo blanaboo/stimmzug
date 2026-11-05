@@ -87,6 +87,22 @@ class MpmPitchDetectorTest {
     }
 
     @Test
+    fun `subharmonic below the detector range is not taken for the octave below`() {
+        // Period doubling as in the Iowa recordings of E1/F1 ff: a weaker component at half the frequency, so the
+        // tone stays clearly periodic (clarity ~0.85) but the octave below is even more periodic.
+        fun withSubharmonic(f: Double) =
+            render(ToneSpec(f, toneSec = 1.0, bleedFrequencyHz = f / 2, bleedPeakDbfs = -22.0))
+        val e1 = frequency(28) // 41.2 Hz, the subharmonic at 20.6 Hz is below minHz = 25
+        assertEquals(0.0, NoteMath.cents(detectAt(detector, withSubharmonic(e1), e1, 0.8).frequencyHz, e1), 5.0)
+        // The guard is what makes the difference: with a range down to 15 Hz the octave below wins.
+        val wideRange = MpmPitchDetector(DetectorConfig(minHz = 15.0))
+        assertEquals(-1200.0, NoteMath.cents(detectAt(wideRange, withSubharmonic(e1), e1, 0.8).frequencyHz, e1), 5.0)
+        // Within the range the octave below is still reported: there a player can really be an octave too low.
+        val a1 = frequency(33) // 55 Hz, subharmonic at 27.5 Hz
+        assertEquals(-1200.0, NoteMath.cents(detectAt(detector, withSubharmonic(a1), a1, 0.8).frequencyHz, a1), 5.0)
+    }
+
+    @Test
     fun `free search finds tuba notes without a target`() {
         for (midi in listOf(29, 34, 41, 53, 65)) {
             val f = frequency(midi)

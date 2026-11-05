@@ -28,6 +28,13 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
+      # Iowa tuba recordings for the regression test (docs/testdata.md): downloaded once, verified by checksum.
+      - name: Cache test recordings
+        uses: actions/cache@v6
+        with:
+          path: testdata/cache
+          key: testdata-${{ hashFiles('tools/replay/src/test/resources/iowa/*.sha256') }}
+
       - name: Check and build debug APK
         run: ./gradlew check assembleDebug --stacktrace
 
