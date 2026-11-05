@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,8 @@ import io.github.blanaboo.stimmzug.ui.theme.StimmzugTheme
 
 /** MIDI number of Kontra-B (B♭1), the home note of the BBb tuba. */
 private const val KONTRA_B = 34
+
+const val TAG_REFERENCE_NOTE = "home_reference_note"
 
 /** Placeholder start screen for M0: proves the app/core wiring and the theme. */
 @Composable
@@ -50,7 +53,8 @@ fun HomeScreen(versionName: String, modifier: Modifier = Modifier) {
             Text(
                 text = stringResource(R.string.reference_note, NoteNames.germanOctaveName(KONTRA_B), frequency),
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag(TAG_REFERENCE_NOTE)
             )
             Spacer(Modifier.height(48.dp))
             Text(
