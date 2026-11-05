@@ -10,6 +10,7 @@
 #   Set-QaDarkMode yes; Wait-QaApp       # configuration changes recreate the activity
 #   Get-QaLogcat -Lines 200; Get-QaCrashLog
 #   Get-QaDeviceInfo                     # model, Android version, audio capabilities (docs/devices.md)
+#   Start-QaLab selbsttest; Get-QaLabSessions -Latest   # audio lab (debug build), see docs/field-test/audio-spike.md
 #
 # Binary output (screenshots, UI dumps) is written on the device and pulled, because PowerShell 5.1
 # corrupts binary data piped from native commands.
@@ -222,7 +223,34 @@ function Get-QaDeviceInfo {
     }
 }
 
-function Get-QaMemory { Invoke-QaAdb shell dumpsys meminfo $script:QaPackage | Select-String 'TOTAL|Java Heap|Native Heap' }
+function Start-QaLab {
+    <#
+    Starts the audio lab of the debug build (#33) with a protocol: 'selbsttest' runs on its own (drone through the
+    speaker, about 3 minutes), 'tuba' is the guided measurement. The phone must be unlocked.
+    #>
+    param([ValidateSet('selbsttest', 'tuba')] [string] $Protocol = 'selbsttest')
+    Set-QaPermission grant | Out-Null
+    Invoke-QaAdb shell am start -W -n "$script:QaPackage/io.github.blanaboo.stimmzug.lab.AudioLabActivity" --es protocol $Protocol
+}
+
+function Get-QaLabSessions {
+    <#
+    Pulls the audio lab's sessions into testdata\local\lab (git-ignored: recordings of real playing stay on this
+    machine) and returns the local folders. -Latest pulls only the newest one. Evaluate a session with
+    ./gradlew :tools:replay:run --args="testdata/local/lab/<session>"
+    #>
+    param([switch] $Latest, [string] $Destination = 'testdata\local\lab')
+    $remote = "/sdcard/Android/data/$script:QaPackage/files/lab"
+    $sessions = @(Invoke-QaAdb shell ls $remote | Where-Object { $_ -match '^\d{8}-\d{6}-\w+$' } | Sort-Object)
+    if ($Latest) { $sessions = @($sessions | Select-Object -Last 1) }
+    New-Item -ItemType Directory -Force $Destination | Out-Null
+    foreach ($session in $sessions) {
+        Invoke-QaAdb pull "$remote/$session" $Destination | Out-Null
+        Get-Item (Join-Path $Destination $session)
+    }
+}
+
+function Get-QaMemory {Invoke-QaAdb shell dumpsys meminfo $script:QaPackage | Select-String 'TOTAL|Java Heap|Native Heap' }
 
 function Start-QaMonkey {
     <# Random UI stress test; returns the monkey summary. #>
