@@ -41,6 +41,8 @@ class AudioLabActivity : ComponentActivity() {
                 var permitted by remember { mutableStateOf(viewModel.hasMicPermission()) }
                 val request = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
                     permitted = it
+                    // A protocol requested via adb starts as soon as the player allows the microphone.
+                    if (it) autostart?.let(viewModel::protocol)?.let(viewModel::start)
                 }
                 LaunchedEffect(Unit) {
                     if (!permitted) request.launch(Manifest.permission.RECORD_AUDIO)

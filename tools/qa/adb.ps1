@@ -229,7 +229,10 @@ function Start-QaLab {
     speaker, about 3 minutes), 'tuba' is the guided measurement. The phone must be unlocked.
     #>
     param([ValidateSet('selbsttest', 'tuba')] [string] $Protocol = 'selbsttest')
-    Set-QaPermission grant | Out-Null
+    try { Set-QaPermission grant | Out-Null } catch {
+        # Some vendors (e.g. OnePlus) refuse pm grant; the app then asks itself and starts after the answer.
+        Write-Warning "Cannot grant the microphone permission via adb, confirm the app's dialog instead: $($_.Exception.Message.Split([char]10)[0])"
+    }
     Invoke-QaAdb shell am start -W -n "$script:QaPackage/io.github.blanaboo.stimmzug.lab.AudioLabActivity" --es protocol $Protocol
 }
 
