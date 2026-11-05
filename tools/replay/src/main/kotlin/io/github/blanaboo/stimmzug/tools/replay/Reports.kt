@@ -72,9 +72,12 @@ object Reports {
             append("Ergebnis: kein Treffer")
         }
         note.entryCents?.let { append(" | Einstieg ${signed(it)} ct") }
-        if (note.wrongOctaveSec > 0) append(" | falsche Oktave ${de(note.wrongOctaveSec, 1)} s")
-        if (note.wrongNoteSec > 0) append(" | falscher Ton ${de(note.wrongNoteSec, 1)} s")
+        if (note.wrongOctaveSec >= SHOWN_SEC) append(" | falsche Oktave ${de(note.wrongOctaveSec, 1)} s")
+        if (note.wrongNoteSec >= SHOWN_SEC) append(" | falscher Ton ${de(note.wrongNoteSec, 1)} s")
     }
+
+    /** Shorter times (a single frame in the attack) would print as "0,0 s". */
+    private const val SHOWN_SEC = 0.05
 
     private fun num(v: Double, decimals: Int) = String.format(Locale.ROOT, "%.${decimals}f", v)
 

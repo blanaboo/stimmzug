@@ -180,11 +180,16 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
      * The octave-down check must come first: the octave-up check compares a ratio, which a weak side maximum and an
      * equally weak value at half its lag also satisfy. A tone at the target or an octave above is about as periodic
      * at twice the period as at the period, so the octave-down check never fires for them.
+     *
+     * The octave below is only taken if it lies within [DetectorConfig.minHz]: very low tuba notes in ff can show
+     * period doubling (a subharmonic from slightly alternating lip vibration) that is as periodic as the tone itself,
+     * and a "tone" at e.g. 21 Hz cannot be played anyway (seen in the Iowa recordings of E1 and F1).
      */
     protected fun pickTargeted(curve: DoubleArray, plan: Plan): Int {
         val last = plan.analysisLag - 1
         val best = highestPeak(curve, plan.minLag, min(plan.maxLag, last))
-        val lower = highestPeak(curve, 2 * plan.minLag, min(2 * plan.maxLag, last))
+        val lowestLag = plan.decimatedRate / config.minHz
+        val lower = highestPeak(curve, 2 * plan.minLag, min(min(2 * plan.maxLag, last), lowestLag.toInt()))
         if (best < 0 || curve[best] <= 0.0) return if (lower > 0 && curve[lower] > 0.0) lower else -1
         if (lower > 0 && curve[lower] >= curve[best] + config.octaveDownMargin) return lower
         val half = localMaxNear(curve, best / 2.0, radius = 2, lo = 2, hi = last)
