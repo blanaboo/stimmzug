@@ -12,9 +12,14 @@ import javax.sound.sampled.UnsupportedAudioFileException
 import kotlin.system.exitProcess
 
 const val USAGE = """Verwendung: replay <aufnahme.wav|aiff> [Optionen]
+       replay <labor-sitzung> [--detector mpm|yin] [--out <ordner>]
 
 Spielt eine Aufnahme durch Tonhöhenerkennung, Pegel-Gate und Treffer-Logik und schreibt
 <name>.csv (ein Frame pro Zeile), <name>.png (Diagramm) und <name>.txt (Zusammenfassung).
+
+Ein Ordner einer Sitzung des Audio-Labors (takes.csv, segments.csv, WAV-Dateien) wird komplett
+ausgewertet: report.md, report.csv und je Aufnahme Diagramm und CSV in <out>/charts/.
+Standard für <out> ist <labor-sitzung>/auswertung. Zielton und Kalibrierung kommen aus der Sitzung.
 
   --target <ton>        Zielton: MIDI-Nummer (34), "Bb1", "Kontra-B", "großes F", "f'" oder "58.27Hz".
                         Ohne Zielton: freie Erkennung ohne Treffer-Logik.
@@ -124,6 +129,7 @@ fun run(args: List<String>, out: PrintStream = System.out, err: PrintStream = Sy
         err.println("Fehler: ${e.message}")
         return 2
     }
+    if (parsed.input.isDirectory) return runLab(parsed, out, err)
     return try {
         val clip = AudioFileReader.read(parsed.input)
         val result = Replay.run(clip.samples, clip.sampleRate, parsed.options)
@@ -145,6 +151,37 @@ fun run(args: List<String>, out: PrintStream = System.out, err: PrintStream = Sy
         0
     } catch (e: UnsupportedAudioFileException) {
         err.println("Fehler: Audioformat nicht lesbar (${e.message}). Unterstützt: WAV, AIFF.")
+        1
+    } catch (e: IllegalArgumentException) {
+        err.println("Fehler: ${e.message}")
+        1
+    }
+}
+
+/** Evaluates a session folder of the audio lab, see [LabReport]. */
+private fun runLab(parsed: Arguments, out: PrintStream, err: PrintStream): Int {
+    val dir = parsed.input
+    if (!LabReport.isSession(dir)) {
+        err.println("Fehler: $dir ist kein Ordner einer Labor-Sitzung (takes.csv oder segments.csv fehlt)")
+        return 2
+    }
+    if (parsed.targetText != null || parsed.options.calibrationSec > 0.0) {
+        err.println("Fehler: Bei einer Labor-Sitzung kommen Zielton und Kalibrierung aus der Sitzung")
+        return 2
+    }
+    return try {
+        val outDir = (parsed.outDir ?: File(dir, "auswertung")).apply { mkdirs() }
+        val outcome = LabReport.run(dir, outDir, parsed.options)
+        out.println("Labor-Sitzung ${dir.name}: ${outcome.analyzed} Aufnahmen ausgewertet")
+        outcome.skipped.forEach { out.println("Nicht ausgewertet: $it") }
+        out.println("Bericht: ${outcome.markdown.path}")
+        out.println("Tabelle: ${outcome.csv.path}")
+        0
+    } catch (e: UnsupportedAudioFileException) {
+        err.println("Fehler: Audioformat nicht lesbar (${e.message})")
+        1
+    } catch (e: NoSuchElementException) {
+        err.println("Fehler: Sitzungsdateien unvollständig (${e.message})")
         1
     } catch (e: IllegalArgumentException) {
         err.println("Fehler: ${e.message}")

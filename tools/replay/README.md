@@ -45,6 +45,20 @@ Neben der Aufnahme (oder in `--out`) entstehen drei Dateien:
   - `verdict`, `phase`, `hold_progress`: Entscheidung der Treffer-Logik
 - **`<name>.txt`**: Zusammenfassung, wie sie auch auf der Konsole erscheint. Sie enthält Treffer und Zeit bis zum Treffer, die Einstiegsabweichung, Mittel und Streuung beim Halten sowie die Zeit auf falscher Oktave bzw. falschem Ton.
 
+## Sitzungen des Audio-Labors
+
+Statt einer Datei lässt sich ein ganzer Sitzungsordner des Audio-Labors (Debug-App, #33) auswerten:
+
+```sh
+./gradlew :tools:replay:run --args="testdata/local/lab/20261106-101500-tuba"
+```
+
+- **Zielton und Kalibrierung** kommen aus `takes.csv` und `segments.csv`. Kalibriert wird über den ersten
+  Abschnitt, wenn darin niemand spielt.
+- **`--detector`** und die Optionen der Treffer-Logik gelten wie bei einer einzelnen Datei.
+- **Ausgabe** in `<sitzung>/auswertung/` (oder `--out`): `report.md`, `report.csv` und je Aufnahme Diagramm und CSV
+  in `charts/`. Die Messgrößen beschreibt [docs/field-test/audio-spike.md](../../docs/field-test/audio-spike.md).
+
 ## Hinweise
 
 - **Eigene Aufnahmen** gehören nach `testdata/local/`. Der Ordner wird nicht eingecheckt.
