@@ -33,6 +33,8 @@ Spielt eine Aufnahme durch Tonhöhenerkennung, Pegel-Gate und Treffer-Logik und 
 /** Thrown for invalid command lines; the message is shown with the usage. */
 class UsageException(message: String) : Exception(message)
 
+private fun usageError(message: String): Nothing = throw UsageException(message)
+
 data class Arguments(
     val input: File,
     val targetText: String?,
@@ -50,8 +52,8 @@ fun parseArguments(args: List<String>): Arguments {
     var detector = DetectorChoice.MPM
     var match = MatchConfig(preListenSec = 0.0)
     var i = 0
-    fun value(): String = args.getOrNull(++i) ?: throw UsageException("Wert fehlt für ${args[i - 1]}")
-    fun number(): Double = value().replace(',', '.').toDoubleOrNull() ?: throw UsageException("Keine Zahl: ${args[i]}")
+    fun value(): String = args.getOrNull(++i) ?: usageError("Wert fehlt für ${args[i - 1]}")
+    fun number(): Double = value().replace(',', '.').toDoubleOrNull() ?: usageError("Keine Zahl: ${args[i]}")
     while (i < args.size) {
         when (val arg = args[i]) {
             "--target" -> target = value()
@@ -75,20 +77,20 @@ fun parseArguments(args: List<String>): Arguments {
             "--detector" -> detector = when (value().lowercase()) {
                 "mpm" -> DetectorChoice.MPM
                 "yin" -> DetectorChoice.YIN
-                else -> throw UsageException("Unbekanntes Verfahren: ${args[i]} (mpm oder yin)")
+                else -> usageError("Unbekanntes Verfahren: ${args[i]} (mpm oder yin)")
             }
 
             else -> {
-                if (arg.startsWith("--")) throw UsageException("Unbekannte Option: $arg")
-                if (input != null) throw UsageException("Nur eine Aufnahme angeben (zweite: $arg)")
+                if (arg.startsWith("--")) usageError("Unbekannte Option: $arg")
+                if (input != null) usageError("Nur eine Aufnahme angeben (zweite: $arg)")
                 input = File(arg)
             }
         }
         i++
     }
-    if (input == null) throw UsageException("Keine Aufnahme angegeben")
-    if (a4 <= 0) throw UsageException("Kammerton muss positiv sein")
-    val targetHz = target?.let { parseTargetHz(it, a4) ?: throw UsageException("Unbekannter Zielton: $it") }
+    if (input == null) usageError("Keine Aufnahme angegeben")
+    if (a4 <= 0) usageError("Kammerton muss positiv sein")
+    val targetHz = target?.let { parseTargetHz(it, a4) ?: usageError("Unbekannter Zielton: $it") }
     return Arguments(
         input,
         target,
@@ -130,7 +132,8 @@ fun run(args: List<String>, out: PrintStream = System.out, err: PrintStream = Sy
         val csv = File(dir, "$base.csv")
         val png = File(dir, "$base.png")
         val txt = File(dir, "$base.txt")
-        val targetName = parsed.targetText?.let { describeTarget(it, parsed.options.targetHz!!, parsed.a4Hz) }
+        val targetHz = parsed.options.targetHz
+        val targetName = parsed.targetText?.let { text -> targetHz?.let { describeTarget(text, it, parsed.a4Hz) } }
         Reports.writeCsv(result, csv, parsed.a4Hz)
         Chart.render(result, chartTitle(parsed.input.name, targetName, result), parsed.a4Hz, png)
         val summary = Reports.summary(result, parsed.input.name, targetName)

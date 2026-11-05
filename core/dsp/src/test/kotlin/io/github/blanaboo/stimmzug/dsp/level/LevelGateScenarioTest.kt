@@ -103,7 +103,9 @@ class LevelGateScenarioTest {
         }
     }
 
-    /** The critical case: in tune means a fixed phase to the drone, so each seed is a different (partial) cancellation. */
+    /**
+     * The critical case: in tune means a fixed phase to the drone, so each seed is a different (partial) cancellation.
+     */
     @ParameterizedTest(name = "MIDI {0}")
     @MethodSource("notes")
     fun `tuba 10 dB above an in-tune unison drone passes whatever the phase`(midi: Int) {

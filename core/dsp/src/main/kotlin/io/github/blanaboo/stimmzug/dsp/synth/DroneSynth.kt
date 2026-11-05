@@ -71,7 +71,7 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
         require(frequencyHz > 0.0) { "frequency must be positive, was $frequencyHz" }
         noteHz = frequencyHz
         lastNoteHz = frequencyHz
-        queueNote()
+        queueNote(frequencyHz)
     }
 
     /** Fades the drone out; a confirmation chime keeps sounding. */
@@ -87,7 +87,7 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
         require(octaves in 0..MAX_OCTAVE_OFFSET) { "octave offset must be in 0..$MAX_OCTAVE_OFFSET, was $octaves" }
         if (octaves == octaveOffset) return
         octaveOffset = octaves
-        if (noteHz != null) queueNote()
+        noteHz?.let { queueNote(it) }
     }
 
     /** Volume 0..1, ramped. */
@@ -102,8 +102,8 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
         commands += Command.Chime(ConfirmationChime.baseFrequencyFor(lastNoteHz))
     }
 
-    private fun queueNote() {
-        val sounding = noteHz!! * 2.0.pow(octaveOffset)
+    private fun queueNote(frequencyHz: Double) {
+        val sounding = frequencyHz * 2.0.pow(octaveOffset)
         require(sounding < MAX_FREQUENCY_FRACTION * sampleRate) { "drone frequency $sounding Hz too high" }
         commands += Command.Play(sounding, droneWavetable(sounding, sampleRate, config.dynamic))
     }
