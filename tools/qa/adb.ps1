@@ -4,9 +4,10 @@
 #   . .\tools\qa\adb.ps1                 # dot-source to load the functions
 #   Get-QaDevices
 #   Set-QaDevice emulator-5554           # optional when only one device is connected
-#   Install-QaApk; Start-QaApp
+#   Install-QaApk; Start-QaApp; Wait-QaApp
 #   Get-QaScreenshot start               # -> build\qa\screens\<timestamp>-start.png
-#   Invoke-QaTap -Text 'Start'
+#   Invoke-QaTap -Text 'Start'           # or -ResourceId <Compose test tag>
+#   Set-QaDarkMode yes; Wait-QaApp       # configuration changes recreate the activity
 #   Get-QaLogcat -Lines 200; Get-QaCrashLog
 #
 # Binary output (screenshots, UI dumps) is written on the device and pulled, because PowerShell 5.1
@@ -62,6 +63,22 @@ function Start-QaApp {
 
 function Stop-QaApp { Invoke-QaAdb shell am force-stop $script:QaPackage | Out-Null }
 
+function Wait-QaApp {
+    <#
+    Waits until the app window has focus again, then lets it settle. Use it after Start-QaApp and after
+    configuration changes (Set-QaDarkMode/-FontScale/-Rotation recreate the activity): a screenshot taken during
+    the transition is black.
+    #>
+    param([int] $TimeoutSec = 20, [int] $SettleMs = 2000)
+    $pattern = "mCurrentFocus=.*$([regex]::Escape($script:QaPackage))/"
+    $watch = [Diagnostics.Stopwatch]::StartNew()
+    while (-not ((Invoke-QaAdb shell dumpsys window) -match $pattern)) {
+        if ($watch.Elapsed.TotalSeconds -gt $TimeoutSec) { throw "app window not focused after $TimeoutSec s" }
+        Start-Sleep -Milliseconds 500
+    }
+    Start-Sleep -Milliseconds $SettleMs
+}
+
 function Reset-QaApp { Invoke-QaAdb shell pm clear $script:QaPackage }
 
 function Set-QaPermission {
@@ -69,6 +86,9 @@ function Set-QaPermission {
         [ValidateSet('grant', 'revoke')] [string] $Action = 'grant',
         [string] $Permission = 'android.permission.RECORD_AUDIO'
     )
+    # pm grant/revoke silently ignore permissions the app does not request, so check that first.
+    $requested = Invoke-QaAdb shell dumpsys package $script:QaPackage | Select-String -SimpleMatch "${Permission}:"
+    if (-not $requested) { throw "$script:QaPackage does not request $Permission" }
     Invoke-QaAdb shell pm $Action $script:QaPackage $Permission
 }
 
@@ -83,11 +103,25 @@ function Get-QaScreenshot {
 }
 
 function Get-QaUiDump {
-    <# Returns the current UI hierarchy as [xml] (Compose test tags appear as resource-id). #>
-    $file = Join-Path (Get-QaOutDir 'ui') ("{0:yyyyMMdd-HHmmss}.xml" -f (Get-Date))
-    Invoke-QaAdb shell uiautomator dump /sdcard/qa-ui.xml | Out-Null
-    Invoke-QaAdb pull /sdcard/qa-ui.xml $file | Out-Null
-    [xml](Get-Content $file -Raw -Encoding UTF8)
+    <#
+    Returns the current UI hierarchy as [xml]. Compose test tags appear as resource-id because MainActivity sets
+    testTagsAsResourceId. uiautomator exits with 0 even when it fails (e.g. "null root node" while the UI is busy)
+    and then writes no file, so the old file is removed first and failures are retried.
+    #>
+    param([int] $Attempts = 3)
+    $file = Join-Path (Get-QaOutDir 'ui') ("{0:yyyyMMdd-HHmmss-fff}.xml" -f (Get-Date))
+    $remote = '/sdcard/qa-ui.xml'
+    for ($i = 1; $i -le $Attempts; $i++) {
+        Invoke-QaAdb shell rm -f $remote | Out-Null
+        $out = (Invoke-QaAdb shell uiautomator dump $remote) -join ' '
+        if ($out -notmatch 'ERROR') {
+            Invoke-QaAdb pull $remote $file | Out-Null
+            Invoke-QaAdb shell rm -f $remote | Out-Null
+            return [xml](Get-Content $file -Raw -Encoding UTF8)
+        }
+        Start-Sleep -Seconds 1
+    }
+    throw "uiautomator dump failed $Attempts times: $out"
 }
 
 function Find-QaNode {
@@ -119,7 +153,9 @@ function Send-QaKey { param([Parameter(Mandatory)] [string] $Key) Invoke-QaAdb s
 function Get-QaLogcat {
     <# Logcat lines of the running app process (or everything if it is not running). #>
     param([int] $Lines = 300)
-    $appPid = (Invoke-QaAdb shell pidof $script:QaPackage) -join ''
+    # pidof exits with 1 when the app is not running, which Invoke-QaAdb turns into an exception.
+    $appPid = ''
+    try { $appPid = (Invoke-QaAdb shell pidof $script:QaPackage) -join '' } catch { }
     if ($appPid -match '^\d+') { Invoke-QaAdb logcat -d -t $Lines --pid=$($Matches[0]) }
     else { Invoke-QaAdb logcat -d -t $Lines }
 }
