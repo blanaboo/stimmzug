@@ -9,6 +9,7 @@
 #   Invoke-QaTap -Text 'Start'           # or -ResourceId <Compose test tag>
 #   Set-QaDarkMode yes; Wait-QaApp       # configuration changes recreate the activity
 #   Get-QaLogcat -Lines 200; Get-QaCrashLog
+#   Get-QaDeviceInfo                     # model, Android version, audio capabilities (docs/devices.md)
 #
 # Binary output (screenshots, UI dumps) is written on the device and pulled, because PowerShell 5.1
 # corrupts binary data piped from native commands.
@@ -173,6 +174,52 @@ function Set-QaRotation {
     param([ValidateRange(0, 3)] [int] $Rotation = 0)
     Invoke-QaAdb shell settings put system accelerometer_rotation 0 | Out-Null
     Invoke-QaAdb shell settings put system user_rotation $Rotation | Out-Null
+}
+
+function Get-QaDeviceInfo {
+    <#
+    Collects the facts recorded per device in docs/devices.md. UnprocessedSource is the framework resource that
+    AudioManager.getProperty(PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED) reads, with vendor overlays applied.
+    #>
+    $prop = { param($Name) ((Invoke-QaAdb shell getprop $Name) -join '').Trim() }
+    $unprocessed = try {
+        ((Invoke-QaAdb shell cmd overlay lookup android android:bool/config_supportAudioSourceUnprocessed) -join '').Trim()
+    } catch { 'unknown (cmd overlay lookup needs Android 11+)' }
+    $features = Invoke-QaAdb shell pm list features
+    $hasFeature = { param($Name) [bool]($features -contains "feature:$Name") }
+
+    # Attached input devices are listed with two spaces of indentation, mix port entries deeper.
+    $policy = Invoke-QaAdb shell dumpsys media.audio_policy
+    $inputs = foreach ($line in $policy) {
+        if ($line -match '^  \d+\. Port ID: \d+; "([^"]+)"; \{(AUDIO_DEVICE_IN_\w+)') { "$($Matches[1]) ($($Matches[2]))" }
+    }
+    # Each output thread prints its HAL frame count before its stream flags.
+    $fastFrames = $null
+    $halFrames = $null
+    foreach ($line in (Invoke-QaAdb shell dumpsys media.audio_flinger)) {
+        if ($line -match 'HAL frame count: (\d+)') { $halFrames = [int]$Matches[1] }
+        if ($line -match 'AudioStreamOut: .*\(AUDIO_OUTPUT_FLAG_FAST\)' -and -not $fastFrames) { $fastFrames = $halFrames }
+    }
+
+    [pscustomobject][ordered]@{
+        Manufacturer      = & $prop ro.product.manufacturer
+        Model             = & $prop ro.product.model
+        Device            = & $prop ro.product.device
+        Android           = & $prop ro.build.version.release
+        Sdk               = & $prop ro.build.version.sdk
+        FirstApiLevel     = & $prop ro.product.first_api_level
+        Build             = & $prop ro.build.display.id
+        SecurityPatch     = & $prop ro.build.version.security_patch
+        Soc               = '{0} {1}' -f (& $prop ro.soc.manufacturer), (& $prop ro.soc.model)
+        Abi               = & $prop ro.product.cpu.abi
+        UnprocessedSource = $unprocessed
+        LowLatencyAudio   = & $hasFeature android.hardware.audio.low_latency
+        ProAudio          = & $hasFeature android.hardware.audio.pro
+        AAudioMmapPolicy  = & $prop aaudio.mmap_policy
+        MmapInput         = [bool]($policy -match 'AUDIO_INPUT_FLAG_MMAP_NOIRQ')
+        FastOutputFrames  = $fastFrames
+        InputDevices      = @($inputs | Select-Object -Unique)
+    }
 }
 
 function Get-QaMemory { Invoke-QaAdb shell dumpsys meminfo $script:QaPackage | Select-String 'TOTAL|Java Heap|Native Heap' }
