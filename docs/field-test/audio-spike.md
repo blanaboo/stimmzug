@@ -32,7 +32,7 @@ mit einem kurzen Countdown, in dem du atmen kannst.
 |---|---|---|---|
 | 1 | **Kontra-F** (43,7 Hz) | 10 | 2 s still, dann 6 s Ton halten |
 | 2 | **großes F** (87,3 Hz) | 10 | 2 s still, dann 6 s Ton halten |
-| 3 | **Kontra-B** (58,3 Hz) mit Drone | 3 | 3 s nur zuhören, dann ohne abzusetzen: 5 s **etwas zu tief**, 6 s **sauber**, 5 s **etwas zu hoch** |
+| 3 | **Kontra-B** (58,3 Hz) mit Drone | 4 | 3 s nur zuhören, dann ohne abzusetzen: 5 s **etwas zu tief**, 6 s **sauber**, 5 s **etwas zu hoch** |
 
 - Wenn die Anweisung **grün** ist, spielst du. In Teil 1 und 2 **immer gleich laut (mf)** und mit **gleichem
   Abstand** spielen, damit sich die Aufnahmen vergleichen lassen. Die Stimmung ist hier egal.

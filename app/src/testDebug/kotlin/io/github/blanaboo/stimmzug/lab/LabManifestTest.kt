@@ -40,7 +40,7 @@ class LabManifestTest {
 
         val row = LabManifest.takeRow(ok)
         assertEquals(LabManifest.TAKE_COLUMNS.size, row.size)
-        assertEquals("VOICE_RECOGNITION", row[LabManifest.TAKE_COLUMNS.indexOf("source")])
+        assertEquals("UNPROCESSED", row[LabManifest.TAKE_COLUMNS.indexOf("source")])
         assertEquals("58.270", row[LabManifest.TAKE_COLUMNS.indexOf("note_hz")])
         assertEquals("0.0425", row[LabManifest.TAKE_COLUMNS.indexOf("dsp_load")])
         assertEquals(LabManifest.TAKE_COLUMNS.size, LabManifest.takeRow(failed).size)
@@ -59,10 +59,10 @@ class LabManifestTest {
         assertEquals(
             listOf(
                 LabManifest.SEGMENT_COLUMNS.joinToString(","),
-                "T12,0,drone,0.00,3.00,0,1",
-                "T12,1,low,3.00,8.00,1,1",
-                "T12,2,clean,8.00,14.00,1,1",
-                "T12,3,high,14.00,19.00,1,1"
+                "T13,0,drone,0.00,3.00,0,1",
+                "T13,1,low,3.00,8.00,1,1",
+                "T13,2,clean,8.00,14.00,1,1",
+                "T13,3,high,14.00,19.00,1,1"
             ),
             segments
         )

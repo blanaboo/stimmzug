@@ -41,8 +41,13 @@ class LabProtocolTest {
         assertEquals(5 * 2 * 2, withoutDrone.size)
         assertEquals(listOf(LabProtocols.KONTRA_F, LabProtocols.GROSSES_F), withoutDrone.map { it.noteMidi }.distinct())
         assertFalse(withoutDrone.any { it.source == LabSource.VOICE_COMMUNICATION })
-        // Unison with both microphones, then once an octave higher.
-        assertEquals(listOf(0, 0, 1), withDrone.map { it.droneOctave })
+        // The raw path with both microphones and the processed path in unison, then the raw path an octave higher.
+        assertEquals(listOf(0, 0, 0, 1), withDrone.map { it.droneOctave })
+        assertEquals(
+            listOf(LabSource.UNPROCESSED, LabSource.UNPROCESSED, LabSource.VOICE_RECOGNITION, LabSource.UNPROCESSED),
+            withDrone.map { it.source }
+        )
+        assertEquals(listOf(bottom, back, bottom, bottom), withDrone.map { it.mic })
         assertTrue(withDrone.all { take -> take.segments.all { it.drone } })
         assertEquals(listOf("drone", "low", "clean", "high"), withDrone.first().segments.map { it.key })
         assertEquals(3, protocol.takes.count { it.pauseBefore != null })
@@ -57,7 +62,7 @@ class LabProtocolTest {
         assertEquals(names.size, names.toSet().size)
         assertTrue(names.all { name -> name.all { it.code < 128 } && name.endsWith(".wav") })
         assertEquals("T01-unprocessed-unten-f1.wav", names.first())
-        assertEquals("T23-voice_recognition-unten-bb1-drone+1.wav", names.last())
+        assertEquals("T24-unprocessed-unten-bb1-drone+1.wav", names.last())
     }
 
     @Test

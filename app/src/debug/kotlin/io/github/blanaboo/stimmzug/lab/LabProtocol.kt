@@ -133,12 +133,16 @@ object LabProtocols {
                 takes += Take(id(takes.size), source, mic, note, segments, pauseBefore = pause)
             }
         }
-        val droneSource = LabSource.VOICE_RECOGNITION
-        // In unison with every microphone, then once with the drone an octave higher (the app's option against bleed).
-        val droneTakes = mics.map { mic -> mic to 0 } + (mics.first() to 1)
-        droneTakes.forEachIndexed { i, (mic, octave) ->
-            val pause = if (i == 0) DRONE_INTRO else null
-            takes += Take(id(takes.size), droneSource, mic, KONTRA_B, droneSegments, octave, pause)
+        // The self-test on the Nord 2 (#32) showed two paths: UNPROCESSED (raw, the microphone choice matters) and one
+        // processed path shared by all other sources (microphone choice without effect). Hence: UNPROCESSED in unison
+        // with every microphone, VOICE_RECOGNITION for the processed path, and UNPROCESSED once with the drone an
+        // octave higher (the app's option against bleed).
+        val droneTakes = mics.map { mic -> Triple(LabSource.UNPROCESSED, mic, 0) } +
+            Triple(LabSource.VOICE_RECOGNITION, mics.first(), 0) +
+            Triple(LabSource.UNPROCESSED, mics.first(), 1)
+        droneTakes.forEachIndexed { i, (source, mic, octave) ->
+            val pause = if (i == 0) droneIntro(droneTakes.size) else null
+            takes += Take(id(takes.size), source, mic, KONTRA_B, droneSegments, octave, pause)
         }
         return LabProtocol("tuba", "Tuba-Messung", takes, prepSec = 4.0)
     }
@@ -154,8 +158,8 @@ object LabProtocols {
         "Teil $part von 3: $note ohne Drone, $count Aufnahmen. Jede Aufnahme: 2 s Stille, dann 6 s $note " +
             "halten. Immer gleich laut (mf) und mit gleichem Abstand zum Handy spielen."
 
-    private const val DRONE_INTRO =
-        "Teil 3 von 3: Kontra-B mit Drone, 3 Aufnahmen. Medienlautstärke so einstellen, wie du üben würdest. " +
+    private fun droneIntro(count: Int) =
+        "Teil 3 von 3: Kontra-B mit Drone, $count Aufnahmen. Medienlautstärke so einstellen, wie du üben würdest. " +
             "Erst zuhören, dann etwas zu tief, sauber und etwas zu hoch spielen, jeweils ohne abzusetzen."
 
     private fun available(sources: List<LabSource>, sdk: Int) = sources.filter { sdk >= it.minSdk }
