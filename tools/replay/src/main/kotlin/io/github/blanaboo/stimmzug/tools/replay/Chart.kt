@@ -62,13 +62,8 @@ object Chart {
             g.color = Color.BLACK
             g.drawString(title, LEFT, 32)
             val axis = TimeAxis(max(result.durationSec, 0.1))
-            if (result.options.targetHz !=
-                null
-            ) {
-                drawTargetPitch(g, result, axis)
-            } else {
-                drawFreePitch(g, result, axis, a4Hz)
-            }
+            val targetHz = result.options.targetHz
+            if (targetHz != null) drawTargetPitch(g, result, axis, targetHz) else drawFreePitch(g, result, axis, a4Hz)
             drawLevel(g, result, axis)
         } finally {
             g.dispose()
@@ -83,89 +78,21 @@ object Chart {
         fun x(t: Double) = LEFT + t / durationSec * PLOT_WIDTH
     }
 
-    private fun drawTargetPitch(g: Graphics2D, result: ReplayResult, axis: TimeAxis) {
-        val target = result.options.targetHz!!
-        fun y(cents: Double) = TOP + (RANGE_CENTS - cents) / (2 * RANGE_CENTS) * PITCH_HEIGHT
+    private fun drawTargetPitch(g: Graphics2D, result: ReplayResult, axis: TimeAxis, targetHz: Double) {
         shadeCalibration(g, result, axis, TOP, PITCH_HEIGHT)
         // Phases "Im Bereich" as background, one rectangle per contiguous stretch (per-frame boxes leave pixel gaps).
         g.color = IN_RANGE
-        var stretchStart: Double? = null
-        for ((a, b) in result.rows.zipWithNext()) {
-            val inRange = a.status?.phase == MatchPhase.IN_RANGE
-            if (inRange && stretchStart == null) stretchStart = a.frame.timeSec
-            if (!inRange && stretchStart != null) {
-                fill(g, axis.x(stretchStart), TOP.toDouble(), axis.x(a.frame.timeSec), (TOP + PITCH_HEIGHT).toDouble())
-                stretchStart = null
-            }
-            if (inRange && b === result.rows.last()) {
-                fill(
-                    g,
-                    axis.x(stretchStart!!),
-                    TOP.toDouble(),
-                    axis.x(b.frame.timeSec),
-                    (TOP + PITCH_HEIGHT).toDouble()
-                )
-            }
+        for ((start, end) in inRangeStretches(result.rows)) {
+            fill(g, axis.x(start), TOP.toDouble(), axis.x(end), (TOP + PITCH_HEIGHT).toDouble())
         }
         val tolerance = result.options.match.toleranceCents
         g.color = BAND
-        fill(g, LEFT.toDouble(), y(tolerance), (LEFT + PLOT_WIDTH).toDouble(), y(-tolerance))
+        fill(g, LEFT.toDouble(), centsY(tolerance), (LEFT + PLOT_WIDTH).toDouble(), centsY(-tolerance))
         drawTimeGrid(g, axis, TOP, PITCH_HEIGHT)
-        g.font = Font(Font.SANS_SERIF, Font.PLAIN, 13)
-        for (c in listOf(-50.0, -25.0, 0.0, 25.0, 50.0)) {
-            g.color = if (c == 0.0) Color.GRAY else Color(225, 225, 225)
-            g.draw(Line2D.Double(LEFT.toDouble(), y(c), (LEFT + PLOT_WIDTH).toDouble(), y(c)))
-            g.color = Color.DARK_GRAY
-            g.drawString(String.format(Locale.GERMANY, "%+.0f ct", c).replace("+0", "0"), 20, (y(c) + 5).toInt())
-        }
-        // Raw deviations of the frames the hit logic saw.
-        for (row in result.rows) {
-            val e = row.frame.estimate
-            if (row.inCalibration || !row.passedGate || !e.isVoiced) continue
-            val cents = NoteMath.cents(e.frequencyHz, target)
-            val x = axis.x(row.frame.timeSec)
-            if (abs(cents) <= RANGE_CENTS) {
-                g.color = RAW
-                g.fillOval((x - 2).toInt(), (y(cents) - 2).toInt(), 4, 4)
-            } else {
-                g.color = OUTSIDE
-                val edge = if (cents > 0) TOP + 6.0 else TOP + PITCH_HEIGHT - 6.0
-                g.fillRect((x - 2).toInt(), (edge - 4).toInt(), 4, 8)
-            }
-        }
-        // Smoothed deviation as used for the decision.
-        g.color = SMOOTHED
-        g.stroke = BasicStroke(2f)
-        var path: Path2D.Double? = null
-        for (row in result.rows) {
-            val cents = row.status?.centsDeviation?.takeIf { abs(it) <= RANGE_CENTS }
-            if (cents == null) {
-                path?.let { g.draw(it) }
-                path = null
-                continue
-            }
-            val p = path ?: Path2D.Double().also { it.moveTo(axis.x(row.frame.timeSec), y(cents)) }
-            p.lineTo(axis.x(row.frame.timeSec), y(cents))
-            path = p
-        }
-        path?.let { g.draw(it) }
-        g.stroke = BasicStroke(1f)
-        // Hit.
-        val note = result.note
-        val hitRow = result.rows.firstOrNull { it.status?.phase == MatchPhase.HIT }
-        if (note != null && hitRow != null) {
-            val x = axis.x(hitRow.frame.timeSec)
-            g.color = HIT
-            g.stroke = BasicStroke(3f)
-            g.draw(Line2D.Double(x, TOP.toDouble(), x, (TOP + PITCH_HEIGHT).toDouble()))
-            g.stroke = BasicStroke(1f)
-            g.font = Font(Font.SANS_SERIF, Font.BOLD, 14)
-            g.drawString(
-                String.format(Locale.GERMANY, "Treffer nach %.2f s", note.timeToHitSec),
-                (x + 6).toInt(),
-                TOP + 20
-            )
-        }
+        drawCentsScale(g)
+        drawRawDeviations(g, result, axis, targetHz)
+        drawSmoothedDeviation(g, result, axis)
+        drawHit(g, result, axis)
         frame(g, TOP, PITCH_HEIGHT)
         legend(
             g,
@@ -176,6 +103,90 @@ object Chart {
                 IN_RANGE to "im Bereich",
                 OUTSIDE to "außerhalb ±50 ct (falscher Ton/Oktave)"
             )
+        )
+    }
+
+    private fun centsY(cents: Double) = TOP + (RANGE_CENTS - cents) / (2 * RANGE_CENTS) * PITCH_HEIGHT
+
+    /** Time spans (start, end) in which the hit logic was IN_RANGE. */
+    private fun inRangeStretches(rows: List<ReplayRow>): List<Pair<Double, Double>> {
+        val stretches = ArrayList<Pair<Double, Double>>()
+        var start: Double? = null
+        for (row in rows.dropLast(1)) {
+            val inRange = row.status?.phase == MatchPhase.IN_RANGE
+            val open = start
+            if (inRange && open == null) start = row.frame.timeSec
+            if (!inRange && open != null) {
+                stretches += open to row.frame.timeSec
+                start = null
+            }
+        }
+        // A stretch still open at the second-to-last row lasts until the last row.
+        start?.let { stretches += it to rows.last().frame.timeSec }
+        return stretches
+    }
+
+    private fun drawCentsScale(g: Graphics2D) {
+        g.font = Font(Font.SANS_SERIF, Font.PLAIN, 13)
+        for (c in listOf(-50.0, -25.0, 0.0, 25.0, 50.0)) {
+            g.color = if (c == 0.0) Color.GRAY else Color(225, 225, 225)
+            g.draw(Line2D.Double(LEFT.toDouble(), centsY(c), (LEFT + PLOT_WIDTH).toDouble(), centsY(c)))
+            g.color = Color.DARK_GRAY
+            g.drawString(String.format(Locale.GERMANY, "%+.0f ct", c).replace("+0", "0"), 20, (centsY(c) + 5).toInt())
+        }
+    }
+
+    /** Raw deviations of the frames the hit logic saw; beyond the panel range marked at the edge. */
+    private fun drawRawDeviations(g: Graphics2D, result: ReplayResult, axis: TimeAxis, targetHz: Double) {
+        for (row in result.rows) {
+            val e = row.frame.estimate
+            if (row.inCalibration || !row.passedGate || !e.isVoiced) continue
+            val cents = NoteMath.cents(e.frequencyHz, targetHz)
+            val x = axis.x(row.frame.timeSec)
+            if (abs(cents) <= RANGE_CENTS) {
+                g.color = RAW
+                g.fillOval((x - 2).toInt(), (centsY(cents) - 2).toInt(), 4, 4)
+            } else {
+                g.color = OUTSIDE
+                val edge = if (cents > 0) TOP + 6.0 else TOP + PITCH_HEIGHT - 6.0
+                g.fillRect((x - 2).toInt(), (edge - 4).toInt(), 4, 8)
+            }
+        }
+    }
+
+    /** Smoothed deviation as used for the decision, interrupted where there is none. */
+    private fun drawSmoothedDeviation(g: Graphics2D, result: ReplayResult, axis: TimeAxis) {
+        g.color = SMOOTHED
+        g.stroke = BasicStroke(2f)
+        var path: Path2D.Double? = null
+        for (row in result.rows) {
+            val cents = row.status?.centsDeviation?.takeIf { abs(it) <= RANGE_CENTS }
+            if (cents == null) {
+                path?.let { g.draw(it) }
+                path = null
+                continue
+            }
+            val p = path ?: Path2D.Double().also { it.moveTo(axis.x(row.frame.timeSec), centsY(cents)) }
+            p.lineTo(axis.x(row.frame.timeSec), centsY(cents))
+            path = p
+        }
+        path?.let { g.draw(it) }
+        g.stroke = BasicStroke(1f)
+    }
+
+    private fun drawHit(g: Graphics2D, result: ReplayResult, axis: TimeAxis) {
+        val note = result.note ?: return
+        val hitRow = result.rows.firstOrNull { it.status?.phase == MatchPhase.HIT } ?: return
+        val x = axis.x(hitRow.frame.timeSec)
+        g.color = HIT
+        g.stroke = BasicStroke(3f)
+        g.draw(Line2D.Double(x, TOP.toDouble(), x, (TOP + PITCH_HEIGHT).toDouble()))
+        g.stroke = BasicStroke(1f)
+        g.font = Font(Font.SANS_SERIF, Font.BOLD, 14)
+        g.drawString(
+            String.format(Locale.GERMANY, "Treffer nach %.2f s", note.timeToHitSec),
+            (x + 6).toInt(),
+            TOP + 20
         )
     }
 

@@ -11,7 +11,7 @@ player holds the pitch within a tolerance for a hold time, then advances. See `d
 ## Commands
 
 ```sh
-./gradlew check                       # spotless (ktlint), Android lint, unit tests, Kover verification
+./gradlew check                       # spotless (ktlint), detekt, Android lint, unit tests, Kover verification
 ./gradlew :core:dsp:test              # fast DSP unit tests (JVM)
 ./gradlew assembleDebug               # debug APK (applicationId suffix .debug)
 ./gradlew connectedDebugAndroidTest   # instrumented tests on emulator/device

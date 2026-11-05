@@ -78,25 +78,7 @@ class MatchStateMachine(val config: MatchConfig = MatchConfig()) {
             else -> Unit
         }
 
-        val inRange = verdict == PitchVerdict.IN_TOLERANCE
-        if (phase == MatchPhase.LISTENING) {
-            if (inRange) {
-                phase = MatchPhase.IN_RANGE
-                resetHold(t)
-                addToHold(smoothed!!)
-            }
-        } else {
-            if (smoothed != null) addToHold(smoothed)
-            if (inRange) {
-                lastInRange = t
-                if (t - holdStart >= config.holdSec - EPS) {
-                    phase = MatchPhase.HIT
-                    hitTime = t
-                }
-            } else if (t - lastInRange > config.graceSec + EPS) {
-                phase = MatchPhase.LISTENING
-            }
-        }
+        updateHold(t, smoothed, verdict == PitchVerdict.IN_TOLERANCE)
         return MatchStatus(phase, t, smoothed, verdict, holdProgress(t))
     }
 
@@ -144,6 +126,28 @@ class MatchStateMachine(val config: MatchConfig = MatchConfig()) {
         val octaves = (cents / CENTS_PER_OCTAVE).roundToInt()
         val offOctave = abs(cents - octaves * CENTS_PER_OCTAVE)
         return if (offOctave < MatchConfig.SAME_NOTE_CENTS) PitchVerdict.WRONG_OCTAVE else PitchVerdict.WRONG_NOTE
+    }
+
+    /** LISTENING ↔ IN_RANGE → HIT. A frame is only [inRange] with a [smoothed] value. */
+    private fun updateHold(t: Double, smoothed: Double?, inRange: Boolean) {
+        if (phase == MatchPhase.LISTENING) {
+            if (inRange && smoothed != null) {
+                phase = MatchPhase.IN_RANGE
+                resetHold(t)
+                addToHold(smoothed)
+            }
+            return
+        }
+        if (smoothed != null) addToHold(smoothed)
+        if (inRange) {
+            lastInRange = t
+            if (t - holdStart >= config.holdSec - EPS) {
+                phase = MatchPhase.HIT
+                hitTime = t
+            }
+        } else if (t - lastInRange > config.graceSec + EPS) {
+            phase = MatchPhase.LISTENING
+        }
     }
 
     private fun holdProgress(t: Double): Double = when (phase) {

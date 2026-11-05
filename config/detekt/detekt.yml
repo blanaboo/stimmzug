@@ -1,0 +1,32 @@
+# detekt rules adjusted to Stimmzug, see docs/adr/0004-static-analysis-detekt.md.
+# Everything not listed here keeps detekt's defaults (buildUponDefaultConfig).
+
+complexity:
+  CyclomaticComplexMethod:
+    # A `when` that maps each state or option to one statement reads well however many branches it has.
+    ignoreSimpleWhenEntries: true
+  LongParameterList:
+    # Parameters with defaults do not burden the call sites.
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    # Small private helpers are what keeps the functions short; only the API surface counts.
+    ignorePrivate: true
+
+naming:
+  FunctionNaming:
+    # Composables are named like types.
+    ignoreAnnotated: ['Composable']
+
+style:
+  MagicNumber:
+    # Signal processing and music theory are full of literal constants (12 semitones, 1200 cents, 20 log10, MIDI
+    # note ranges, pixel layout of the replay chart). Naming each of them hurts readability more than it helps.
+    active: false
+  ReturnCount:
+    # Early returns for edge cases are the house style, e.g. in the period picking of the pitch detector.
+    excludeGuardClauses: true
+  ThrowsCount:
+    excludeGuardClauses: true
+  UnusedPrivateFunction:
+    # Compose previews are only called by the IDE.
+    ignoreAnnotated: ['Preview']

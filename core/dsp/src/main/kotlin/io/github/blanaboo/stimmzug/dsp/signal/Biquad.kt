@@ -71,6 +71,7 @@ class Biquad private constructor(
             return cos(w0) to sin(w0) / (2 * q)
         }
 
+        @Suppress("LongParameterList") // the six coefficients of the transfer function
         private fun normalized(b0: Double, b1: Double, b2: Double, a0: Double, a1: Double, a2: Double) =
             Biquad(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0)
 

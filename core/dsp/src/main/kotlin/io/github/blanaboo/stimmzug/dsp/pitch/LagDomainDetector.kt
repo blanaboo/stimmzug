@@ -40,7 +40,7 @@ data class DetectorConfig(
 abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
 
     /** How a window is analysed for a given sample rate and target. Lags are in decimated samples. */
-    protected class Plan(
+    protected data class Plan(
         val decimation: Int,
         val decimatedRate: Double,
         val window: Int,
@@ -54,7 +54,6 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
     )
 
     private val autocorrelations = HashMap<Int, Autocorrelation>()
-    private var autocorrelation: Autocorrelation? = null
     protected var work = DoubleArray(0)
     protected var acf = DoubleArray(0)
     protected var energy = DoubleArray(0)
@@ -120,7 +119,7 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
     private fun warmup(decimation: Int) = if (decimation > 1) WARMUP_PER_DECIMATION * decimation else 0
 
     private fun prepare(samples: DoubleArray, end: Int, plan: Plan) {
-        ensureCapacity(plan)
+        val autocorrelation = ensureCapacity(plan)
         val window = plan.window
         val d = plan.decimation
         if (d == 1) {
@@ -145,7 +144,7 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
         mean /= window
         for (i in 0 until window) work[i] -= mean
 
-        autocorrelation!!.compute(work, window, plan.analysisLag, acf)
+        autocorrelation.compute(work, window, plan.analysisLag, acf)
         var m = 0.0
         for (i in 0 until window) m += work[i] * work[i]
         energy[0] = 2.0 * m
@@ -156,16 +155,17 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
         }
     }
 
-    private fun ensureCapacity(plan: Plan) {
+    /** Grows the work buffers for [plan] and returns the autocorrelation to use. */
+    private fun ensureCapacity(plan: Plan): Autocorrelation {
         if (work.size < plan.window) work = DoubleArray(plan.window)
-        // One autocorrelation per FFT size, so high notes (short windows) do not pay for a large FFT that was
-        // needed for a low note earlier. Window sizes only take a handful of power-of-two FFT sizes.
-        val fftSize = Fft.nextPowerOfTwo(2 * plan.window)
-        autocorrelation = autocorrelations.getOrPut(fftSize) { Autocorrelation(fftSize / 2) }
         if (acf.size <= plan.analysisLag) {
             acf = DoubleArray(plan.analysisLag + 1)
             energy = DoubleArray(plan.analysisLag + 1)
         }
+        // One autocorrelation per FFT size, so high notes (short windows) do not pay for a large FFT that was
+        // needed for a low note earlier. Window sizes only take a handful of power-of-two FFT sizes.
+        val fftSize = Fft.nextPowerOfTwo(2 * plan.window)
+        return autocorrelations.getOrPut(fftSize) { Autocorrelation(fftSize / 2) }
     }
 
     /**

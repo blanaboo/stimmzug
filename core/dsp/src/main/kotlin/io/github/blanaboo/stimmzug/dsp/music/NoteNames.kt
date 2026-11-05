@@ -83,14 +83,12 @@ object NoteNames {
 
     private fun parseGerman(t: String): Int? {
         val prefix = germanPrefixes.firstOrNull { t.startsWith(it.first, ignoreCase = true) }
-        val (octave, name) = if (prefix != null) {
-            prefix.second to t.substring(prefix.first.length)
-        } else {
-            val primes = t.takeLastWhile { it == '\'' }.length
-            if (primes == 0) return null
-            3 + primes to t.dropLast(primes)
+        val primes = t.takeLastWhile { it == '\'' }.length
+        val (octave, name) = when {
+            prefix != null -> prefix.second to t.substring(prefix.first.length)
+            primes > 0 -> 3 + primes to t.dropLast(primes)
+            else -> return null
         }
-        val pitchClass = germanClasses[name.lowercase()] ?: return null
-        return (octave + 1) * 12 + pitchClass
+        return germanClasses[name.lowercase()]?.let { pitchClass -> (octave + 1) * 12 + pitchClass }
     }
 }

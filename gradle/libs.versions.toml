@@ -21,6 +21,7 @@ roborazzi = "1.77.0"
 kover = "0.9.11"
 spotless = "8.10.4"
 ktlint = "1.8.0"
+detekt = "2.0.0-alpha.6"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -68,3 +69,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

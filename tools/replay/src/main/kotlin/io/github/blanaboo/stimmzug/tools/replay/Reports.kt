@@ -16,30 +16,37 @@ object Reports {
     fun writeCsv(result: ReplayResult, file: File, a4Hz: Double) {
         file.bufferedWriter().use { out ->
             out.appendLine(CSV_COLUMNS.joinToString(","))
-            for (row in result.rows) {
-                val e = row.frame.estimate
-                val voiced = e.isVoiced
-                val nearest = if (voiced) NoteMath.nearestMidi(e.frequencyHz, a4Hz) else null
-                val target = result.options.targetHz
-                val cells = listOf(
-                    num(row.frame.timeSec, 3),
-                    if (voiced) num(e.frequencyHz, 4) else "",
-                    num(e.clarity, 3),
-                    num(e.levelDb, 1),
-                    if (row.inCalibration) "1" else "0",
-                    if (row.passedGate) "1" else "0",
-                    nearest?.let { NoteNames.germanOctaveName(it) } ?: "",
-                    nearest?.let { num(NoteMath.centsFromNote(e.frequencyHz, it, a4Hz), 2) } ?: "",
-                    if (voiced && target != null) num(NoteMath.cents(e.frequencyHz, target), 2) else "",
-                    row.status?.centsDeviation?.let { num(it, 2) } ?: "",
-                    row.status?.verdict?.name ?: "",
-                    row.status?.phase?.name ?: "",
-                    row.status?.let { num(it.holdProgress, 3) } ?: ""
-                )
-                out.appendLine(cells.joinToString(",") { if (it.contains(',') || it.contains(' ')) "\"$it\"" else it })
-            }
+            for (row in result.rows) out.appendLine(csvLine(row, result.options.targetHz, a4Hz))
         }
     }
+
+    private fun csvLine(row: ReplayRow, targetHz: Double?, a4Hz: Double): String {
+        val e = row.frame.estimate
+        val hz = e.frequencyHz.takeIf { e.isVoiced }
+        val nearest = hz?.let { NoteMath.nearestMidi(it, a4Hz) }
+        val status = row.status
+        val cells = listOf(
+            num(row.frame.timeSec, 3),
+            hz.cell { num(it, 4) },
+            num(e.clarity, 3),
+            num(e.levelDb, 1),
+            flag(row.inCalibration),
+            flag(row.passedGate),
+            nearest.cell { NoteNames.germanOctaveName(it) },
+            nearest.cell { num(NoteMath.centsFromNote(e.frequencyHz, it, a4Hz), 2) },
+            hz.cell { f -> targetHz.cell { num(NoteMath.cents(f, it), 2) } },
+            status?.centsDeviation.cell { num(it, 2) },
+            status?.verdict?.name.orEmpty(),
+            status?.phase?.name.orEmpty(),
+            status.cell { num(it.holdProgress, 3) }
+        )
+        return cells.joinToString(",") { if (it.contains(',') || it.contains(' ')) "\"$it\"" else it }
+    }
+
+    /** Formatted value, or an empty cell for `null`. */
+    private inline fun <T : Any> T?.cell(format: (T) -> String): String = if (this == null) "" else format(this)
+
+    private fun flag(value: Boolean) = if (value) "1" else "0"
 
     fun summary(result: ReplayResult, name: String, targetName: String?): String = buildString {
         val rows = result.rows.filterNot { it.inCalibration }
@@ -65,9 +72,14 @@ object Reports {
             "Ziel: $targetName (${de(note.targetHz, 2)} Hz), Toleranz ±${de(m.toleranceCents, 1)} ct, " +
                 "Haltedauer ${de(m.holdSec, 1)} s, Gnadenzeit ${de(m.graceSec, 2)} s"
         )
-        if (note.hit) {
-            append("Ergebnis: Treffer nach ${de(note.timeToHitSec!!, 2)} s")
-            append(" | Halten: Mittel ${signed(note.holdMeanCents!!)} ct, Streuung ${de(note.holdSpreadCents!!, 1)} ct")
+        val hitAfter = note.timeToHitSec
+        if (note.hit && hitAfter != null) {
+            append("Ergebnis: Treffer nach ${de(hitAfter, 2)} s")
+            val mean = note.holdMeanCents
+            val spread = note.holdSpreadCents
+            if (mean != null && spread != null) {
+                append(" | Halten: Mittel ${signed(mean)} ct, Streuung ${de(spread, 1)} ct")
+            }
         } else {
             append("Ergebnis: kein Treffer")
         }
