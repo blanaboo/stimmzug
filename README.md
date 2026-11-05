@@ -42,6 +42,9 @@ Jede Änderung beginnt mit einem Issue → Branch → Pull Request („Fixes #N�
 
 APK aus den [Releases](../../releases) laden – oder mit [Obtainium](https://github.com/ImranR98/Obtainium) die Repo-URL eintragen, dann aktualisiert sich die App automatisch.
 
+Vorabversionen (Tags mit Bindestrich, z. B. `v0.0.1-m0`) findet Obtainium nur, wenn beim Hinzufügen der App
+„Vorabversionen einbeziehen“ eingeschaltet ist.
+
 ## Lizenz
 
 [MIT](LICENSE)
