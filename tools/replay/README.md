@@ -1,0 +1,52 @@
+# Replay-Werkzeug
+
+Spielt eine Aufnahme (WAV oder AIFF) durch dieselbe Kette wie die App: Tonhöhenerkennung → Pegel-Gate → Treffer-Logik.
+Gedacht für die Auswertung von Praxistest-Aufnahmen und zum Ausprobieren von Parametern.
+
+## Aufruf
+
+Aus dem Repository-Wurzelverzeichnis:
+
+```sh
+./gradlew :tools:replay:run --args="testdata/local/kontra-b.wav --target Kontra-B --calibrate 1.5"
+```
+
+Relative Pfade beziehen sich auf das Repository. Alle Optionen zeigt `--help`:
+
+| Option | Bedeutung | Standard |
+|---|---|---|
+| `--target <ton>` | Zielton: `34`, `Bb1`, `Kontra-B`, `großes F`, `f'` oder `58.27Hz`. Ohne Zielton: freie Erkennung ohne Treffer-Logik. | – |
+| `--a4 <Hz>` | Kammerton a' | 440 |
+| `--calibrate <s>` | Die ersten s Sekunden (niemand spielt, ggf. läuft der Drone) kalibrieren das Pegel-Gate. Ohne: kein Gate. | 0 |
+| `--tolerance <ct>` | Toleranz | 5 |
+| `--hold <s>` | Haltedauer | 3 |
+| `--grace <s>` | Gnadenzeit für Aussetzer und kurze Ausflüge | 0,3 |
+| `--min-clarity <0..1>` | Mindest-Klarheit | 0,8 |
+| `--median <n>` | Median-Glättung über n Frames (à 20 ms) | 5 |
+| `--detector mpm\|yin` | Erkennungsverfahren | mpm |
+| `--out <ordner>` | Ausgabeordner | neben der Aufnahme |
+
+Dezimalzahlen dürfen mit Komma oder Punkt angegeben werden.
+
+## Ausgabe
+
+Neben der Aufnahme (oder in `--out`) entstehen drei Dateien:
+
+- **`<name>.png`**: Diagramm.
+  - Oben die Abweichung vom Zielton in Cent: grünes Toleranzband, graue Rohwerte, blaue geglättete Kurve, blau hinterlegt „im Bereich“, grüne Linie beim Treffer.
+  - Werte außerhalb ±50 ct (falsche Oktave oder falscher Ton) erscheinen als rote Marken am Rand.
+  - Unten der Pegel mit der Gate-Schwelle (orange).
+- **`<name>.csv`**: ein Frame pro Zeile (alle 20 ms), Spalten:
+  - `time_s`: Zeit in Sekunden
+  - `frequency_hz`, `clarity`, `level_dbfs`: Messwerte des Frames
+  - `calibration`, `passed_gate`: Kalibrierphase bzw. Gate durchgelassen (1/0)
+  - `nearest_note`, `cents_from_nearest`: nächster Ton und Abweichung davon
+  - `cents_from_target`, `smoothed_cents`: Abweichung vom Zielton, roh und geglättet
+  - `verdict`, `phase`, `hold_progress`: Entscheidung der Treffer-Logik
+- **`<name>.txt`**: Zusammenfassung, wie sie auch auf der Konsole erscheint. Sie enthält Treffer und Zeit bis zum Treffer, die Einstiegsabweichung, Mittel und Streuung beim Halten sowie die Zeit auf falscher Oktave bzw. falschem Ton.
+
+## Hinweise
+
+- **Eigene Aufnahmen** gehören nach `testdata/local/`. Der Ordner wird nicht eingecheckt.
+- **Pre-Listen-Phase:** Die Treffer-Logik startet ohne Vorhören direkt nach der Kalibrierung, denn das Timing des Spielers steckt bereits in der Aufnahme.
+- **Parameter-Sweeps:** `Replay.run(samples, sampleRate, options)` ist eine reine Funktion und lässt sich aus einem Test oder Skript mit verschiedenen `ReplayOptions` mehrfach aufrufen.

@@ -16,6 +16,7 @@ player holds the pitch within a tolerance for a hold time, then advances. See `d
 ./gradlew assembleDebug               # debug APK (applicationId suffix .debug)
 ./gradlew connectedDebugAndroidTest   # instrumented tests on emulator/device
 ./gradlew spotlessApply               # auto-format
+./gradlew :tools:replay:run --args="<file.wav> --target Kontra-B --calibrate 1.5"   # replay a recording, see tools/replay/README.md
 ```
 
 Machine-specific paths (JDK, SDK, AVD, adb) are in `CLAUDE.local.md` (not committed).

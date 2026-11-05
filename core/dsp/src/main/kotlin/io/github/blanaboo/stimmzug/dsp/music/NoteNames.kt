@@ -44,4 +44,53 @@ object NoteNames {
             else -> scientific(midi)
         }
     }
+
+    /**
+     * Parses a note into its MIDI number, or returns `null`. Accepted: a MIDI number ("34"), scientific pitch
+     * notation ("Bb1", "B♭1", "F#2", "C4"; here B = B natural) and German octave names as produced by
+     * [germanOctaveName], also with sharps ("Kontra-B", "großes F", "kleines fis", "f'", "Subkontra-B").
+     */
+    fun parseMidi(text: String): Int? {
+        val t = text.trim()
+        return t.toIntOrNull() ?: parseScientific(t) ?: parseGerman(t)
+    }
+
+    private val scientificPattern = Regex("([A-Ga-g])([#♯b♭]?)(-?\\d+)")
+    private val naturalSteps = mapOf('C' to 0, 'D' to 2, 'E' to 4, 'F' to 5, 'G' to 7, 'A' to 9, 'B' to 11)
+
+    private fun parseScientific(t: String): Int? {
+        val m = scientificPattern.matchEntire(t) ?: return null
+        val (letter, accidental, octave) = m.destructured
+        val alteration = when (accidental) {
+            "#", "♯" -> 1
+            "b", "♭" -> -1
+            else -> 0
+        }
+        return (octave.toInt() + 1) * 12 + naturalSteps.getValue(letter[0].uppercaseChar()) + alteration
+    }
+
+    private val germanClasses = mapOf(
+        "c" to 0, "cis" to 1, "des" to 1, "d" to 2, "dis" to 3, "es" to 3, "e" to 4, "f" to 5, "fis" to 6,
+        "ges" to 6, "g" to 7, "gis" to 8, "as" to 8, "a" to 9, "ais" to 10, "b" to 10, "h" to 11
+    )
+    private val germanPrefixes = listOf(
+        "Subkontra-" to 0,
+        "Kontra-" to 1,
+        "großes " to 2,
+        "grosses " to 2,
+        "kleines " to 3
+    )
+
+    private fun parseGerman(t: String): Int? {
+        val prefix = germanPrefixes.firstOrNull { t.startsWith(it.first, ignoreCase = true) }
+        val (octave, name) = if (prefix != null) {
+            prefix.second to t.substring(prefix.first.length)
+        } else {
+            val primes = t.takeLastWhile { it == '\'' }.length
+            if (primes == 0) return null
+            3 + primes to t.dropLast(primes)
+        }
+        val pitchClass = germanClasses[name.lowercase()] ?: return null
+        return (octave + 1) * 12 + pitchClass
+    }
 }

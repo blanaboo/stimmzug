@@ -24,3 +24,4 @@ rootProject.name = "stimmzug"
 
 include(":app")
 include(":core:dsp")
+include(":tools:replay")
