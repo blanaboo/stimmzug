@@ -28,16 +28,18 @@ data class TakeResult(
     val recordedSec: Double,
     /** Pitch detection time per audio time (0.1 = 10 % of real time). */
     val dspLoad: Double?,
-    val startedAt: String
+    val startedAt: String,
+    /** The drone sounded on another kind of device than [Take.output] asked for. */
+    val misrouted: Boolean = false
 )
 
 /** Writes `takes.csv` and `segments.csv` of a session; both are rewritten completely after every take. */
 object LabManifest {
 
     val TAKE_COLUMNS = listOf(
-        "take", "file", "status", "source", "mic", "note", "note_hz", "drone_octave", "duration_s", "recorded_s",
-        "sample_rate", "buffer_frames", "routed_input", "active_mics", "agc", "ns", "aec", "drone_output",
-        "media_volume", "dsp_load", "started_at"
+        "take", "file", "status", "source", "mic", "note", "note_hz", "a4_hz", "drone_octave", "output", "duration_s",
+        "recorded_s", "sample_rate", "buffer_frames", "routed_input", "active_mics", "agc", "ns", "aec", "drone_output",
+        "output_matched", "media_volume", "dsp_load", "started_at"
     )
 
     val SEGMENT_COLUMNS = listOf("take", "index", "segment", "start_s", "end_s", "player_plays", "drone")
@@ -50,12 +52,14 @@ object LabManifest {
     fun takeRow(r: TakeResult): List<String> {
         val t = r.take
         val p = r.path
+        val output = if (t.usesDrone) t.output.key else ""
+        val matched = if (t.usesDrone && p != null) flag(!r.misrouted) else ""
         return listOf(
-            t.id, t.fileName, r.status, t.source.name, t.mic.key, t.noteName, num(t.noteHz, 3),
-            t.droneOctave.toString(), num(t.durationSec, 2), num(r.recordedSec, 2),
+            t.id, t.fileName, r.status, t.source.name, t.mic.key, t.noteName, num(t.noteHz, 3), num(t.a4Hz, 1),
+            t.droneOctave.toString(), output, num(t.durationSec, 2), num(r.recordedSec, 2),
             p?.sampleRate?.toString().orEmpty(), p?.bufferFrames?.toString().orEmpty(), p?.routedInput.orEmpty(),
             p?.activeMics.orEmpty(), p?.agc.orEmpty(), p?.ns.orEmpty(), p?.aec.orEmpty(), p?.droneOutput.orEmpty(),
-            p?.mediaVolume.orEmpty(), r.dspLoad?.let { num(it, 4) }.orEmpty(), r.startedAt
+            matched, p?.mediaVolume.orEmpty(), r.dspLoad?.let { num(it, 4) }.orEmpty(), r.startedAt
         )
     }
 

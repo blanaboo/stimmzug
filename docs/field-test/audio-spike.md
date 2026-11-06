@@ -50,6 +50,38 @@ Handy per USB anschließen und entsperren. Ich hole die Aufnahmen ab und werte s
 - Ging bei einer Aufnahme etwas schief (Nummer, z. B. „T07 zu spät eingesetzt“)?
 - Teil 3: Hast du den Drone beim Spielen gut gehört? Welche Medienlautstärke war angenehm?
 
+## Zweite Messung: Drone über Lautsprecher und Kopfhörer (ca. 5 Minuten)
+
+Bezug: #35. Die erste Messung hat gezeigt, dass der Drone aus dem Handy-Lautsprecher die Tuba für die Erkennung
+überdeckt. Jetzt vergleichen wir den Lautsprecher mit einem Bluetooth-Kopfhörer, auch in höherer Lage. Der Drone ist
+auf a' = 442 Hz gestimmt.
+
+**Vorbereitung:**
+
+- Handy wie bei der ersten Messung aufstellen, etwa 1 m Abstand.
+- Den Bluetooth-Kopfhörer geladen bereitlegen, aber noch im Etui lassen.
+
+**Ablauf:** im „Stimmzug Labor“ **„Drone-Messung starten“** tippen. Jede Aufnahme läuft wie Teil 3 der ersten
+Messung: 3 s zuhören, dann ohne abzusetzen 5 s **etwas zu tief**, 6 s **sauber**, 5 s **etwas zu hoch**.
+
+| Teil | Drone über | Töne |
+|---|---|---|
+| 1 | Handy-Lautsprecher, Medienlautstärke wie beim Üben | Kontra-B, großes F, kleines f, kleines b |
+| 2 | Bluetooth-Kopfhörer: verbinden, einsetzen, Aware-Modus (Transparenz) an | dieselben 4 Töne |
+| 3 | Handy-Lautsprecher, Kopfhörer bleibt verbunden, aber herausgenommen | Kontra-B |
+
+- „Etwas zu tief/hoch“ heißt: so weit, dass du die Schwebung deutlich hörst.
+- Ist der Kopfhörer vor Teil 2 nicht verbunden, wartet die App mit einem Hinweis.
+- Teil 3 prüft, ob die App den Drone auch dann auf den Lautsprecher legen kann, wenn ein Kopfhörer verbunden ist. Landet
+  er trotzdem im Kopfhörer, zeigt die App nach der Aufnahme eine Warnung. Dann einfach weiterspielen, das ist auch ein
+  Ergebnis.
+
+**Danach** brauche ich von dir:
+
+- Hast du den Drone mit Kopfhörer gut gehört, und die Tuba auch?
+- War Aware-Modus an, oder hast du nur einen Ohrhörer getragen?
+- Ging bei einer Aufnahme etwas schief?
+
 ## Für die Entwicklung
 
 ### Selbsttest ohne Spieler
@@ -67,7 +99,7 @@ und etwa 3 Minuten, in denen das Handy Drone-Töne spielt.
 ```powershell
 . .\tools\qa\adb.ps1
 Install-QaApk                        # app\build\outputs\apk\debug\app-debug.apk
-Start-QaLab selbsttest               # Handy entsperrt; startet sofort
+Start-QaLab selbsttest               # Handy entsperrt; startet sofort (oder: tuba, drone)
 Get-QaLabSessions -Latest            # -> testdata\local\lab\<sitzung>
 ```
 

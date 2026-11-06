@@ -121,6 +121,18 @@ class LabRecorder(private val audioManager: AudioManager) {
         }
     }
 
+    /** The device for [output]; `null` for [DroneOutput.SYSTEM] or if it is not connected. */
+    fun outputDevice(output: DroneOutput): AudioDeviceInfo? {
+        if (output == DroneOutput.SYSTEM) return null
+        return audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull { matches(output, it) }
+    }
+
+    /** What the player has to do before a take with [output] can start, or `null` if the output is there. */
+    fun missingOutput(output: DroneOutput): String? = when {
+        output == DroneOutput.SYSTEM || outputDevice(output) != null -> null
+        else -> "${output.label} nicht verbunden. Bitte verbinden, dann „Weiter“ tippen."
+    }
+
     private fun builtInMics(): List<AudioDeviceInfo> =
         audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS).filter { it.type == AudioDeviceInfo.TYPE_BUILTIN_MIC }
 
@@ -157,6 +169,9 @@ class LabRecorder(private val audioManager: AudioManager) {
         private const val ENCODING = AudioFormat.ENCODING_PCM_16BIT
         private const val PROPERTY_UNPROCESSED = AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED
 
+        /** `AudioDeviceInfo.TYPE_BLE_HEADSET` (API 31), only used as a label. */
+        private const val TYPE_BLE_HEADSET = 26
+
         /** VOICE_PERFORMANCE is filtered out by [LabSource.minSdk] below API 29. */
         @Suppress("InlinedApi")
         fun androidSource(source: LabSource): Int = when (source) {
@@ -166,6 +181,22 @@ class LabRecorder(private val audioManager: AudioManager) {
             LabSource.MIC -> MediaRecorder.AudioSource.MIC
             LabSource.CAMCORDER -> MediaRecorder.AudioSource.CAMCORDER
             LabSource.VOICE_COMMUNICATION -> MediaRecorder.AudioSource.VOICE_COMMUNICATION
+        }
+
+        /** Media outputs that count as Bluetooth headphones: classic A2DP and, from API 31, LE Audio. */
+        private val bluetoothOutputs: Set<Int> = buildSet {
+            add(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                add(AudioDeviceInfo.TYPE_BLE_HEADSET)
+                add(AudioDeviceInfo.TYPE_BLE_SPEAKER)
+            }
+        }
+
+        /** Whether [device] is the kind of output [output] asks for; [DroneOutput.SYSTEM] accepts any. */
+        fun matches(output: DroneOutput, device: AudioDeviceInfo?): Boolean = when (output) {
+            DroneOutput.SYSTEM -> true
+            DroneOutput.SPEAKER -> device?.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+            DroneOutput.BLUETOOTH -> device?.type in bluetoothOutputs
         }
 
         fun describe(device: AudioDeviceInfo): String {
@@ -179,6 +210,7 @@ class LabRecorder(private val audioManager: AudioManager) {
                 AudioDeviceInfo.TYPE_USB_HEADSET -> "USB_HEADSET"
                 AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "BLUETOOTH_SCO"
                 AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> "BLUETOOTH_A2DP"
+                TYPE_BLE_HEADSET -> "BLE_HEADSET"
                 AudioDeviceInfo.TYPE_TELEPHONY -> "TELEPHONY"
                 else -> "TYPE_${device.type}"
             }
@@ -209,10 +241,11 @@ class LabRecorder(private val audioManager: AudioManager) {
 }
 
 /**
- * Plays the drone through the media stream (speaker unless headphones are connected), rendered by [DroneSynth] on
- * its own thread. Silent until [play].
+ * Plays the drone through the media stream, rendered by [DroneSynth] on its own thread. Silent until [play].
+ * Without [preferred] Android routes it (speaker unless headphones are connected); with it the track asks for that
+ * device, which [routedOutput] confirms or not.
  */
-class DronePlayer : Closeable {
+class DronePlayer(preferred: AudioDeviceInfo? = null) : Closeable {
     private val synth = DroneSynth(LAB_SAMPLE_RATE.toDouble())
     private val track = AudioTrack.Builder()
         .setAudioAttributes(
@@ -245,11 +278,14 @@ class DronePlayer : Closeable {
     private val thread = Thread(::renderLoop, "lab-drone")
 
     init {
+        preferred?.let(track::setPreferredDevice)
         track.play()
         thread.start()
     }
 
-    val routedDevice: String get() = track.routedDevice?.let(LabRecorder::describe) ?: "?"
+    val routedOutput: AudioDeviceInfo? get() = track.routedDevice
+
+    val routedDevice: String get() = routedOutput?.let(LabRecorder::describe) ?: "?"
 
     fun play(frequencyHz: Double, octaves: Int) {
         synth.setOctaveOffset(octaves)
