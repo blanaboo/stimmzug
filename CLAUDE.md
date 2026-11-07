@@ -25,6 +25,8 @@ Machine-specific paths (JDK, SDK, AVD, adb) are in `CLAUDE.local.md` (not commit
 
 - `core/dsp` – pure Kotlin/JVM, **no Android dependencies**. Pitch detection (MPM, YIN for comparison), FFT,
   level gate, note math, drone synthesis, match state machine, exercise sequencer. Time base = audio sample time.
+  Keep new core code free of JVM-only APIs where practical: it is meant to become a Kotlin Multiplatform module
+  for the iPhone app (M7, #49).
 - `app` – Compose UI, ViewModels, audio adapters (`AudioRecord`, `AudioTrack`), settings, session logging,
   debug-only "virtual tubist" audio input for E2E tests.
 - `tools/` – replay CLI (WAV → detector → CSV/PNG), QA helpers.
@@ -32,7 +34,7 @@ Machine-specific paths (JDK, SDK, AVD, adb) are in `CLAUDE.local.md` (not commit
 
 ## Workflow rules
 
-- Every change starts with a GitHub issue (labels + milestone M0–M5).
+- Every change starts with a GitHub issue (labels + milestone M0–M7, see `docs/roadmap.md`).
 - Branch `feat/<issue>-<slug>` or `fix/<issue>-<slug>`; PR body contains `Fixes #<issue>` and test evidence.
 - Run `./gradlew check` locally before pushing. Merge (squash) only when CI is green.
 - Work autonomously within a milestone; at milestone end: tag `vX.Y.Z` → release → owner tests with a real tuba.

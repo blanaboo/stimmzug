@@ -26,10 +26,23 @@ Intonation mit dem Ohr üben: Die App spielt einen exakt gestimmten Referenzton 
 |---|---|---|
 | **M0 Fundament** | Repo, Gradle-Gerüst, CI/CD (Checks, Emulator-Tests, signierte Releases), Templates | – |
 | **M1 DSP-Kern** | Notenmathematik, FFT, MPM (+ YIN zum Vergleich), Pegel-Gate, Treffer-Logik, Tonfolgen, Drone-Synthese, Replay-Werkzeug, Genauigkeits-Benchmark | – |
-| **M2 MVP** | Spike auf echtem Gerät, Übungs-Screen (Ohr-Modus + Live-Stimmgerät), Drone + Mikrofon, Auto-Weiter, Einstellungen, Onboarding/Kalibrierung, „Virtueller Tubist“ für Tests, Sitzungsprotokoll | v0.1.0 |
+| **M2 MVP** | Spike auf echtem Gerät, Instrumentprofile (#40), Übungs-Screen (Ohr-Modus + Live-Stimmgerät), Tuba-Wahl und Einspiel-Hinweis beim Übungsstart (#44), Drone + Mikrofon, Auto-Weiter, Einstellungen (Stimmton a' Standard 442 Hz), Onboarding/Kalibrierung, „Virtueller Tubist“ für Tests, Sitzungsprotokoll mit Messwerten pro Versuch (#37) | v0.1.0 |
 | **M3 Explorative Tests** | Test-Charters, Befunde als Issues, Fixes, Nachtests | v0.2.0 |
 | **M4 Praxistest** | 1–2 Wochen Üben mit echter Tuba, Auswertung der Protokolle, Parameter-Feinjustierung | v0.3.x |
-| **M5 Ausbau** | Eigene Tonlisten, Verlaufskurve, Statistik/Problemtöne, echte Tuba-Aufnahmen als Drone, Feinschliff; optional Intervalle (reine Stimmung) | v1.0 |
+| **M5 Ausbau** | Problemtöne erkennen und gezielt üben (#38), Stimm-Assistent für Hauptstimmzug und Ventilzüge (#39), Fortschritt pro Tuba mit Verlauf, Serien und Meilensteinen (#45), eigene Tonlisten, echte Tuba-Aufnahmen als Drone, Feinschliff; optional Intervalle (reine Stimmung) und Einspielübungen (Konzept folgt) | v1.0 |
+| **M6 Veröffentlichung** | Google Play Store mit geschlossenem Test, Datenschutzerklärung und Store-Eintrag; optional F-Droid (#48) | v1.x im Store |
+| **M7 iPhone-App** | Gemeinsamer Kern mit Kotlin Multiplatform, Audio für iOS, Spike auf dem iPhone 17 Pro, TestFlight und App Store (#49) | iOS v1.0 |
+
+## Plattformen
+
+- **Android zuerst:** Die App wird bis v1.0 für Android entwickelt und im Alltag erprobt. Danach wird sie im Play
+  Store veröffentlicht (M6).
+- **iPhone danach (M7):**
+  - Der Kern in `core/dsp` hat keine Android-Abhängigkeiten und soll später als Kotlin-Multiplatform-Modul auch auf
+    iOS laufen. Neuer Kern-Code kommt deshalb möglichst ohne Java-spezifische APIs aus.
+  - Neu zu schreiben ist für iOS vor allem die Audio-Ein- und -Ausgabe. Die Oberfläche lässt sich mit Compose
+    Multiplatform größtenteils teilen.
+- **Ohne Internet auf beiden Plattformen:** Messwerte, Profile und Fortschritt bleiben auf dem Gerät.
 
 ## Qualitätssicherung
 

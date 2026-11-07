@@ -6,13 +6,16 @@
 
 ## Funktionen (geplant)
 
-- Drone mit synthetischem Tuba-Klang: exakt gestimmt, endlos haltbar, Stimmton A4 einstellbar (430–450 Hz)
+- Drone mit synthetischem Tuba-Klang: exakt gestimmt, endlos haltbar, Stimmton a' einstellbar (430–450 Hz, Standard 442 Hz wie bei Blechbläsern üblich)
 - Tonerkennung speziell für tiefe Töne (bis ca. 25 Hz, inkl. Pedaltöne): MPM-Verfahren, zielgeführte Suche, Oktavprüfung
 - Treffer, wenn der Ton eine einstellbare Zeit (Standard 3 s) innerhalb einer einstellbaren Toleranz (Standard ±5 Cent) liegt
 - **Ohr-Modus** (Fortschritt ohne Richtungsanzeige), optional Live-Stimmgerät und Verlaufskurve
 - Tonfolgen: chromatisch, Tonleitern, zufällig, eigene Listen
-- Profile für F-Tuba und B-Tuba, deutsche Notennamen (B/H, „Kontra-B“) oder international
+- **Instrumentprofile** für jede eigene Tuba (B, F, Es, C; Ventile, Kompensation, Trigger), deutsche Notennamen (B/H, „Kontra-B“) oder international
+- **Problemtöne** erkennen und gezielt üben, **Fortschritt pro Tuba** mit Verlauf, Serien und Meilensteinen
+- **Stimm-Assistent:** misst Naturtöne, Ventile und Kombinationen und gibt Hinweise für Hauptstimmzug und Ventilzüge
 - **Keine Internet-Berechtigung** – Audio wird ausschließlich auf dem Gerät verarbeitet
+- Zuerst für Android (später im Play Store), danach fürs iPhone
 
 ## Projektstruktur
 
