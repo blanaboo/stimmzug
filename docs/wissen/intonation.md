@@ -22,6 +22,31 @@ Spielweise. Wie deine Tuba tatsächlich liegt, zeigt die Messung, später der St
 | 5 Cent | ein Zwanzigstel | an der Grenze dessen, was man nacheinander gespielt unterscheidet | Toleranz von Stimmzug |
 | 1–2 Cent | ein Hundertstel bis Fünfzigstel | nur noch als sehr langsame Schwebung im Zusammenklang | |
 
+### Ab wann klingt es schief?
+
+Das hängt vor allem davon ab, ob ein zweiter Ton gleichzeitig klingt. Faustwerte, die je nach Hörer, Lautstärke und
+Klang schwanken:
+
+| Situation | hörbar ab etwa | klar „schief“ ab etwa | Warum |
+|---|---|---|---|
+| Gehaltener Zusammenklang: Einklang, Oktave, Akkord | 3–5 Cent, als leichte Unruhe | 10 Cent | Die Schwebung macht kleine Abweichungen hörbar. |
+| Zwei Töne nacheinander verglichen | Geübte 5 Cent, Ungeübte 10–20 Cent | 20 Cent | Ohne Schwebung bleibt nur das Tonhöhengedächtnis. |
+| Melodie ohne Begleitung | 15–25 Cent | 30 Cent und mehr | Es fehlt der direkte Bezug, das Ohr gleicht vieles aus. |
+| Kurze Töne, schnelle Passagen | deutlich mehr | | Die Töne sind zu kurz, um eine Schwebung zu hören. |
+
+**Was das für die Tuba heißt:**
+
+- **Schwebungen bei tiefen Tönen:** Sie sind bei tiefen Tönen langsam. Ein kurzer Kontra-B, der 10 Cent daneben liegt,
+  fällt kaum auf. Ein gehaltener im Schlussakkord dagegen schon.
+- **Tiefe Töne über die Obertöne:** Reine tiefe Töne kann das Ohr schlecht unterscheiden. Bei der Tuba hilft der
+  obertonreiche Klang: Das Ohr beurteilt die Tonhöhe vor allem an den Obertönen.
+- **Der Bass trägt den Akkord:** Liegt er daneben, passen sich die anderen an oder klingen gegen ihn falsch. Saubere
+  Intonation in der Tuba wirkt deshalb auf das ganze Ensemble.
+- **Richtwerte für Ziele:**
+  - ±5 Cent bei gehaltenen Tönen ist sehr sauber. Deshalb ist das die Standard-Toleranz von Stimmzug.
+  - ±10 Cent ist für viele Ensembles ein gutes Ziel.
+  - Ab 15–20 Cent wird es auch für Zuhörer ohne geschultes Ohr unangenehm.
+
 **Wie fein das Ohr ist, hängt vom Vergleich ab.**
 
 - **Nacheinander gespielt** unterscheiden geübte Ohren etwa 5 Cent.
