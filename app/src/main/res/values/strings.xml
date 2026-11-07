@@ -33,6 +33,7 @@
     </plurals>
     <string name="summary_compensating">kompensierend</string>
     <string name="summary_triggers">Trigger: %1$s</string>
+    <string name="trigger_none">Kein Trigger</string>
     <string name="trigger_main_slide">Hauptstimmzug</string>
     <string name="trigger_valve">%1$d. Ventilzug</string>
 
@@ -65,7 +66,7 @@
     <string name="wizard_compensation_no">Nein</string>
     <string name="wizard_compensation_yes">Ja, kompensierend</string>
     <string name="wizard_triggers_title">Welche Züge haben einen Trigger?</string>
-    <string name="wizard_triggers_hint">Trigger sind Züge, die du beim Spielen mit Daumen oder Finger verstellst. Mehrere oder keiner.</string>
+    <string name="wizard_triggers_hint">Trigger sind Züge, die du beim Spielen mit Daumen oder Finger verstellst. Mehrere möglich.</string>
     <string name="wizard_name_title">Wie soll das Profil heißen?</string>
     <string name="wizard_name_label">Name</string>
 </resources>

@@ -46,6 +46,18 @@ class ProfileDraftTest {
     }
 
     @Test
+    fun noTriggerIsAnAnswerThatClearsAllTriggers() {
+        assertFalse(draft.hasTriggers)
+        val withTriggers = draft.toggleTrigger(2).copy(mainSlideTrigger = true)
+        assertTrue(withTriggers.hasTriggers)
+
+        val none = withTriggers.withoutTriggers()
+        assertFalse(none.hasTriggers)
+        assertEquals(emptySet<Int>(), none.triggerValves)
+        assertTrue(draft.copy(mainSlideTrigger = true).hasTriggers)
+    }
+
+    @Test
     fun theOwnersFTubaBecomesAProfile() {
         val melton = draft.copy(key = TubaKey.F, maker = " Melton ", model = "Tradition 4250")
             .withValveCount(5)
