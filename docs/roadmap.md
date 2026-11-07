@@ -16,9 +16,9 @@ Intonation mit dem Ohr üben: Die App spielt einen exakt gestimmten Referenzton 
 | Herausforderung | Lösung |
 |---|---|
 | Sehr tiefe Töne (B-Tuba-Pedal ≈ 29 Hz, Kernbereich ≈ 41–350 Hz; 1 Cent bei 41 Hz = 0,024 Hz) | Periodenschätzung im Zeitbereich (**MPM**, McLeod Pitch Method) mit FFT-beschleunigter Autokorrelation, Fenster ≥ 4 Perioden des Zieltons, parabolische Interpolation → Auflösung < 1 Cent |
-| Handy-Mikrofone dämpfen unter 100 Hz → schwacher Grundton, Gefahr von Oktavfehlern | Periodizität funktioniert auch bei schwachem Grundton; **zielgeführte Suche** (der Zielton ist bekannt) + **Oktavprüfung**; Audioquelle `UNPROCESSED` (ohne Sprachfilter/AGC) |
+| Handy-Mikrofone dämpfen unter 100 Hz → schwacher Grundton, Gefahr von Oktavfehlern | Periodizität funktioniert auch bei schwachem Grundton; **zielgeführte Suche** (der Zielton ist bekannt) + **Oktavprüfung**; Audioquelle `UNPROCESSED` (ohne Hochpass, Limiter und AGC), Fallback `VOICE_RECOGNITION` ([ADR 0005](adr/0005-audio-io.md)) |
 | Natürliche Tonschwankungen | Median-Glättung, Gnadenzeit für kurze Aussetzer, Klarheits-Schwelle – alles einstellbar und im Praxistest kalibriert |
-| Der Drone gelangt über den Lautsprecher ins Mikrofon | **Pegel-Gate** aus der Kalibrierung (die Tuba ist deutlich lauter), Hinweis auf Kopfhörer/externen Lautsprecher, Option „Drone eine/zwei Oktaven höher“ |
+| Der Drone gelangt über den Lautsprecher ins Mikrofon und überdeckt die Tuba (Spike #32) | **Drone über Kopfhörer** empfohlen (ANC aus, ein Ohrhörer reicht): Dann kommt er nicht ins Mikrofon. Über den Lautsprecher: **Tiefpass knapp über dem Zielton** vor der Erkennung und **Pegel-Gate** aus der Kalibrierung ([ADR 0005](adr/0005-audio-io.md)) |
 
 ## Meilensteine
 
@@ -26,7 +26,7 @@ Intonation mit dem Ohr üben: Die App spielt einen exakt gestimmten Referenzton 
 |---|---|---|
 | **M0 Fundament** | Repo, Gradle-Gerüst, CI/CD (Checks, Emulator-Tests, signierte Releases), Templates | – |
 | **M1 DSP-Kern** | Notenmathematik, FFT, MPM (+ YIN zum Vergleich), Pegel-Gate, Treffer-Logik, Tonfolgen, Drone-Synthese, Replay-Werkzeug, Genauigkeits-Benchmark | – |
-| **M2 MVP** | Spike auf echtem Gerät, Instrumentprofile (#40), Übungs-Screen (Ohr-Modus + Live-Stimmgerät), Tuba-Wahl und Einspiel-Hinweis beim Übungsstart (#44), Drone + Mikrofon, Auto-Weiter, Einstellungen (Stimmton a' Standard 442 Hz), Onboarding/Kalibrierung, „Virtueller Tubist“ für Tests, Sitzungsprotokoll mit Messwerten pro Versuch (#37) | v0.1.0 |
+| **M2 MVP** | Spike auf echtem Gerät, Instrumentprofile (#40), Übungs-Screen (Ohr-Modus + Live-Stimmgerät), Tuba-Wahl und Einspiel-Hinweis beim Übungsstart (#44), Drone über Kopfhörer oder Lautsprecher + Mikrofon (#61) mit Tiefpass vor der Erkennung (#60), Auto-Weiter, Einstellungen (Stimmton a' Standard 442 Hz), Onboarding/Kalibrierung, „Virtueller Tubist“ für Tests, Sitzungsprotokoll mit Messwerten pro Versuch (#37) | v0.1.0 |
 | **M3 Explorative Tests** | Test-Charters, Befunde als Issues, Fixes, Nachtests | v0.2.0 |
 | **M4 Praxistest** | 1–2 Wochen Üben mit echter Tuba, Auswertung der Protokolle, Parameter-Feinjustierung | v0.3.x |
 | **M5 Ausbau** | Problemtöne erkennen und gezielt üben (#38), Stimm-Assistent für Hauptstimmzug und Ventilzüge (#39), Fortschritt pro Tuba mit Verlauf, Serien und Meilensteinen (#45), Wissen zu Tuba und Intonation mit Tipps im passenden Moment (#52), eigene Tonlisten, echte Tuba-Aufnahmen als Drone, Intervall- und Akkordübungen in reiner Stimmung (#57), Feinschliff; optional Einspielübungen (Konzept folgt) | v1.0 |
