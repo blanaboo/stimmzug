@@ -1,6 +1,7 @@
 # Replay-Werkzeug
 
-Spielt eine Aufnahme (WAV oder AIFF) durch dieselbe Kette wie die App: Tonhöhenerkennung → Pegel-Gate → Treffer-Logik.
+Spielt eine Aufnahme (WAV oder AIFF) durch dieselbe Kette wie die App: Tiefpass knapp über dem Zielton →
+Tonhöhenerkennung → Pegel-Gate → Treffer-Logik.
 Gedacht für die Auswertung von Praxistest-Aufnahmen und zum Ausprobieren von Parametern.
 
 ## Aufruf
@@ -24,6 +25,7 @@ Relative Pfade beziehen sich auf das Repository. Alle Optionen zeigt `--help`:
 | `--min-clarity <0..1>` | Mindest-Klarheit | 0,8 |
 | `--median <n>` | Median-Glättung über n Frames (à 20 ms) | 5 |
 | `--detector mpm\|yin` | Erkennungsverfahren | mpm |
+| `--no-lowpass` | Ohne Tiefpass vor der Erkennung, zum Vergleich. Mit Zielton filtert die Kette sonst wie die App bei max(250 Hz, 1,4 × Zielton), damit ein Drone aus dem Handy-Lautsprecher die Erkennung nicht übernimmt ([ADR 0005](../../docs/adr/0005-audio-io.md)). Ohne Zielton wird nie gefiltert. | mit Tiefpass |
 | `--out <ordner>` | Ausgabeordner | neben der Aufnahme |
 
 Dezimalzahlen dürfen mit Komma oder Punkt angegeben werden.
@@ -55,7 +57,9 @@ Statt einer Datei lässt sich ein ganzer Sitzungsordner des Audio-Labors (Debug-
 
 - **Zielton und Kalibrierung** kommen aus `takes.csv` und `segments.csv`. Kalibriert wird über den ersten
   Abschnitt, wenn darin niemand spielt.
-- **`--detector`** und die Optionen der Treffer-Logik gelten wie bei einer einzelnen Datei.
+- **`--detector`**, `--no-lowpass` und die Optionen der Treffer-Logik gelten wie bei einer einzelnen Datei.
+- **Tonhöhe mit, Pegel ohne Tiefpass:** Abweichung, Klarheit und Oktavfehler kommen aus der Kette mit Tiefpass. Pegel,
+  Trend und Teiltöne misst der Bericht am ungefilterten Signal, denn sie beschreiben, was das Gerät liefert.
 - **Ausgabe** in `<sitzung>/auswertung/` (oder `--out`): `report.md`, `report.csv` und je Aufnahme Diagramm und CSV
   in `charts/`. Die Messgrößen beschreibt [docs/field-test/audio-spike.md](../../docs/field-test/audio-spike.md).
 

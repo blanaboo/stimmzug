@@ -8,6 +8,7 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 /** One segment of a lab take, from `segments.csv`. */
 data class LabSegment(
@@ -58,6 +59,7 @@ object LabReport {
     const val SEGMENTS_FILE = "segments.csv"
     const val SETTLE_SEC = 0.5
     private const val TREND_WINDOW_SEC = 1.0
+    private const val LEVEL_WINDOW_SEC = 0.1
     private const val HARMONICS = 4
     private const val BLOCK_SEC = 1.0
     private const val NEAR_CENTS = 100.0
@@ -111,7 +113,7 @@ object LabReport {
         val csv = File(outDir, "report.csv")
         csv.writeText(csvText(rows), Charsets.UTF_8)
         val markdown = File(outDir, "report.md")
-        markdown.writeText(markdown(dir, takes, rows, skipped), Charsets.UTF_8)
+        markdown.writeText(markdown(dir, takes, rows, skipped, template.targetLowPass), Charsets.UTF_8)
         return Outcome(takes.size - skipped.size, skipped, markdown, csv)
     }
 
@@ -124,15 +126,17 @@ object LabReport {
     ): SegmentStats {
         val from = segment.startSec + if (segment.endSec - segment.startSec > 2 * SETTLE_SEC) SETTLE_SEC else 0.0
         val inside = frames.filter { it.timeSec > from && it.timeSec <= segment.endSec }
-        val levels = inside.map { it.estimate.levelDb }
+        // Level and trend describe what the device delivers, so they come from the unfiltered input, not from the
+        // frames (measured after the detector's low-pass).
+        val levels = rawLevels(samples, sampleRate, inside)
         val voiced = inside.filter { it.estimate.isVoiced }
         val cents = voiced.map { NoteMath.cents(it.estimate.frequencyHz, targetHz) }
         val near = cents.filter { abs(it) < NEAR_CENTS }.sorted()
         val octaves = cents.count { abs(abs(it) - OCTAVE_CENTS) < NEAR_CENTS }
         val f0 = near.takeIf { it.isNotEmpty() }?.let { targetHz * 2.0.pow(median(it) / OCTAVE_CENTS) } ?: targetHz
         return SegmentStats(
-            levelDb = levels.takeIf { it.isNotEmpty() }?.let(::median),
-            trendDb = trend(inside, from, segment.endSec),
+            levelDb = levels.takeIf { it.isNotEmpty() }?.let { l -> median(l.map { it.second }) },
+            trendDb = trend(levels, from, segment.endSec),
             voiced = if (inside.isEmpty()) 0.0 else voiced.size.toDouble() / inside.size,
             clarity = voiced.map { it.estimate.clarity }.takeIf { it.isNotEmpty() }?.let(::median),
             centsMedian = near.takeIf { it.isNotEmpty() }?.let(::median),
@@ -142,10 +146,23 @@ object LabReport {
         )
     }
 
-    private fun trend(frames: List<PitchFrame>, from: Double, to: Double): Double? {
+    /** RMS level (dBFS) of the unfiltered input over [LEVEL_WINDOW_SEC] up to each frame's time. */
+    private fun rawLevels(samples: FloatArray, rate: Double, frames: List<PitchFrame>): List<Pair<Double, Double>> {
+        val window = (LEVEL_WINDOW_SEC * rate).toInt()
+        return frames.map { frame ->
+            val end = (frame.timeSec * rate).toInt().coerceIn(0, samples.size)
+            val start = (end - window).coerceAtLeast(0)
+            var sum = 0.0
+            for (i in start until end) sum += samples[i].toDouble() * samples[i]
+            val rms = if (end > start) sqrt(sum / (end - start)) else 0.0
+            frame.timeSec to SignalMath.amplitudeToDb(rms)
+        }
+    }
+
+    private fun trend(levels: List<Pair<Double, Double>>, from: Double, to: Double): Double? {
         if (to - from < 2.5 * TREND_WINDOW_SEC) return null
-        val first = frames.filter { it.timeSec <= from + TREND_WINDOW_SEC }.map { it.estimate.levelDb }
-        val last = frames.filter { it.timeSec > to - TREND_WINDOW_SEC }.map { it.estimate.levelDb }
+        val first = levels.filter { it.first <= from + TREND_WINDOW_SEC }.map { it.second }
+        val last = levels.filter { it.first > to - TREND_WINDOW_SEC }.map { it.second }
         if (first.isEmpty() || last.isEmpty()) return null
         return median(last) - median(first)
     }
@@ -200,7 +217,8 @@ object LabReport {
         dir: File,
         takes: List<Map<String, String>>,
         rows: List<LabRow>,
-        skipped: List<String>
+        skipped: List<String>,
+        lowPass: Boolean
     ): String = buildString {
         appendLine("# Audio-Labor: ${dir.name}")
         appendLine()
@@ -224,7 +242,13 @@ object LabReport {
         appendLine(
             "Gemessen ab ${de(SETTLE_SEC, 1)} s nach Abschnittsbeginn. Trend: Pegel der letzten minus der ersten " +
                 "Sekunde. Abweichung und Streuung (Interquartilsabstand) in Cent zum Ton, nur Frames innerhalb " +
-                "±100 ct. H1–H4: Anteil des 1. bis 4. Teiltons an der Gesamtleistung in dB."
+                "±100 ct. H1–H4: Anteil des 1. bis 4. Teiltons an der Gesamtleistung in dB." +
+                if (lowPass) {
+                    " Tonhöhe wie in der App mit Tiefpass knapp über dem Ton (max(250 Hz, 1,4 × Ton)), Pegel, Trend " +
+                        "und Teiltöne aus dem ungefilterten Signal."
+                } else {
+                    " Tonhöhe ohne Tiefpass (--no-lowpass)."
+                }
         )
         appendLine()
         val header = listOf(

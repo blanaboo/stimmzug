@@ -12,7 +12,7 @@ import javax.sound.sampled.UnsupportedAudioFileException
 import kotlin.system.exitProcess
 
 const val USAGE = """Verwendung: replay <aufnahme.wav|aiff> [Optionen]
-       replay <labor-sitzung> [--detector mpm|yin] [--out <ordner>]
+       replay <labor-sitzung> [--detector mpm|yin] [--no-lowpass] [--out <ordner>]
 
 Spielt eine Aufnahme durch Tonhöhenerkennung, Pegel-Gate und Treffer-Logik und schreibt
 <name>.csv (ein Frame pro Zeile), <name>.png (Diagramm) und <name>.txt (Zusammenfassung).
@@ -32,7 +32,9 @@ Standard für <out> ist <labor-sitzung>/auswertung. Zielton und Kalibrierung kom
   --min-clarity <0..1>  Mindest-Klarheit (Standard 0.8)
   --median <n>          Median-Glättung über n Frames (Standard 5)
   --detector mpm|yin    Verfahren (Standard mpm)
-  --out <ordner>        Ausgabeordner (Standard: neben der Aufnahme)
+  --no-lowpass          Ohne Tiefpass vor der Erkennung. Standard wie in der App: mit Zielton
+                        Tiefpass bei max(250 Hz, 1,4 × Zielton) gegen den Drone aus dem Lautsprecher.
+  --out <ordner>       Ausgabeordner (Standard: neben der Aufnahme)
 """
 
 /** Thrown for invalid command lines; the message is shown with the usage. */
@@ -56,6 +58,7 @@ fun parseArguments(args: List<String>): Arguments {
     var calibrate = 0.0
     var detector = DetectorChoice.MPM
     var match = MatchConfig(preListenSec = 0.0)
+    var lowPass = true
     var i = 0
     fun value(): String = args.getOrNull(++i) ?: usageError("Wert fehlt für ${args[i - 1]}")
     fun number(): Double = value().replace(',', '.').toDoubleOrNull() ?: usageError("Keine Zahl: ${args[i]}")
@@ -79,6 +82,8 @@ fun parseArguments(args: List<String>): Arguments {
 
             "--median" -> match = match.copy(medianFrames = number().toInt())
 
+            "--no-lowpass" -> lowPass = false
+
             "--detector" -> detector = when (value().lowercase()) {
                 "mpm" -> DetectorChoice.MPM
                 "yin" -> DetectorChoice.YIN
@@ -101,7 +106,7 @@ fun parseArguments(args: List<String>): Arguments {
         target,
         a4,
         out,
-        ReplayOptions(targetHz, detector, calibrationSec = calibrate, match = match)
+        ReplayOptions(targetHz, detector, calibrationSec = calibrate, match = match, targetLowPass = lowPass)
     )
 }
 
