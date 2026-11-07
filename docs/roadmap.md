@@ -29,7 +29,7 @@ Intonation mit dem Ohr üben: Die App spielt einen exakt gestimmten Referenzton 
 | **M2 MVP** | Spike auf echtem Gerät, Instrumentprofile (#40), Übungs-Screen (Ohr-Modus + Live-Stimmgerät), Tuba-Wahl und Einspiel-Hinweis beim Übungsstart (#44), Drone + Mikrofon, Auto-Weiter, Einstellungen (Stimmton a' Standard 442 Hz), Onboarding/Kalibrierung, „Virtueller Tubist“ für Tests, Sitzungsprotokoll mit Messwerten pro Versuch (#37) | v0.1.0 |
 | **M3 Explorative Tests** | Test-Charters, Befunde als Issues, Fixes, Nachtests | v0.2.0 |
 | **M4 Praxistest** | 1–2 Wochen Üben mit echter Tuba, Auswertung der Protokolle, Parameter-Feinjustierung | v0.3.x |
-| **M5 Ausbau** | Problemtöne erkennen und gezielt üben (#38), Stimm-Assistent für Hauptstimmzug und Ventilzüge (#39), Fortschritt pro Tuba mit Verlauf, Serien und Meilensteinen (#45), eigene Tonlisten, echte Tuba-Aufnahmen als Drone, Feinschliff; optional Intervalle (reine Stimmung) und Einspielübungen (Konzept folgt) | v1.0 |
+| **M5 Ausbau** | Problemtöne erkennen und gezielt üben (#38), Stimm-Assistent für Hauptstimmzug und Ventilzüge (#39), Fortschritt pro Tuba mit Verlauf, Serien und Meilensteinen (#45), Wissen zu Tuba und Intonation mit Tipps im passenden Moment (#52), eigene Tonlisten, echte Tuba-Aufnahmen als Drone, Feinschliff; optional Intervalle (reine Stimmung) und Einspielübungen (Konzept folgt) | v1.0 |
 | **M6 Veröffentlichung** | Google Play Store mit geschlossenem Test, Datenschutzerklärung und Store-Eintrag; optional F-Droid (#48) | v1.x im Store |
 | **M7 iPhone-App** | Gemeinsamer Kern mit Kotlin Multiplatform, Audio für iOS, Spike auf dem iPhone 17 Pro, TestFlight und App Store (#49) | iOS v1.0 |
 

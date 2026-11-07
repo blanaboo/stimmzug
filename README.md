@@ -3,6 +3,8 @@
 **Intonationstrainer für Tuba (Android).** Die App spielt einen exakt gestimmten Referenzton (Drone), hört über das Mikrofon mit und bestätigt, sobald dein Ton lange genug sauber im Toleranzbereich liegt – dann geht es automatisch zum nächsten Ton. Ziel ist, Intonation mit dem **Ohr** zu trainieren, nicht mit den Augen.
 
 > **Status:** in Entwicklung – siehe [Meilensteine](../../milestones) und [Roadmap](docs/roadmap.md).
+>
+> **Hintergrundwissen:** [Tuba und Intonation](docs/wissen/intonation.md): Stimmton, Temperatur und Einspielen, Naturtonreihe, Ventilkombinationen, Schwebungen.
 
 ## Funktionen (geplant)
 
