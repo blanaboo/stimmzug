@@ -219,24 +219,69 @@ Geschwindigkeit ist der Frequenzunterschied. Bei sauberem Einklang verschwindet 
   auf das „Flattern“ in den höheren Obertönen zu hören statt auf den Grundton.
 - **Faustregel:** Schwebung im Grundton ≈ Frequenz × Cent ÷ 1731.
 
-## Gleichstufig und rein
+## Intervalle und Akkorde: gleichstufig und rein
 
-- **Stimmzug übt die gleichstufige Stimmung im Einklang mit dem Drone.** Das ist die Grundlage: den Ton dort treffen,
-  wo er hingehört.
-- **Im Ensemble klingen Akkorde rein schöner.** Dann werden manche Intervalle bewusst etwas anders gespielt:
+**Zwei Stimmungen:**
 
-| Intervall über dem Grundton des Akkords | rein gegenüber gleichstufig |
-|---|---|
-| Quinte | +2 Cent |
-| Quarte | −2 Cent |
-| große Terz | **−14 Cent** |
-| kleine Terz | **+16 Cent** |
+- **Gleichstufig:** Klavier, Stimmgeräte und Stimmzug teilen die Oktave in zwölf genau gleiche Halbtöne. So passt jede
+  Tonart gleich gut, aber kein Intervall außer der Oktave ist ganz sauber.
+- **Rein:** Die Frequenzen stehen in einfachen Verhältnissen, z. B. 3:2 für die Quinte. Gehaltene Akkorde klingen so
+  ruhig und schwebungsfrei. Bläser und Sänger, die ihre Töne frei intonieren, rücken im Akkord deshalb manche Töne
+  bewusst etwas tiefer oder höher.
 
-- **Interessant für Tubisten:** Der 5. Teilton liegt von Natur aus genau eine reine große Terz über dem Grundton seiner
-  Reihe, also −14 Cent. Spielt die Tuba im B-Dur-Akkord das d als Terz, passt der tiefe 5. Teilton ins Bild. Gegen den
-  Drone im Einklang ist er dagegen zu tief. Es kommt also darauf an, wozu der Ton gehört.
-- In der Basslage spielt die Tuba meist den Grundton des Akkords, und der bleibt in beiden Systemen gleich. Reine
-  Stimmung als eigene Übung ist für später geplant (Intervalle).
+**Reine Intervalle** gegenüber gleichstufig, gemessen vom tieferen Ton aus:
+
+| Intervall | Verhältnis | rein gegenüber gleichstufig | Merkhilfe |
+|---|---|---|---|
+| Oktave | 2:1 | 0 Cent | |
+| Quinte | 3:2 | +2 Cent | kaum etwas |
+| Quarte | 4:3 | −2 Cent | kaum etwas |
+| **große Terz** | 5:4 | **−14 Cent** | Dur-Terz tiefer |
+| **kleine Terz** | 6:5 | **+16 Cent** | Moll-Terz höher |
+| große Sexte | 5:3 | −16 Cent | tiefer |
+| kleine Sexte | 8:5 | +14 Cent | höher |
+| große Sekunde | 9:8 | +4 Cent | etwas höher |
+| große Septime | 15:8 | −12 Cent | als Akkordton tiefer |
+| kleine Septime | 7:4 | −31 Cent | Naturseptime, siehe unten |
+
+**Faustregeln im Akkord**, immer bezogen auf den Grundton des Akkords, nicht auf die Tonart:
+
+| Akkord | Grundton | Terz | Quinte |
+|---|---|---|---|
+| **Dur** (z. B. B-Dur: b, d, f) | Bezug, 0 | **14 Cent tiefer** (d) | 2 Cent höher (f) |
+| **Moll** (z. B. g-Moll: g, b, d) | Bezug, 0 | **16 Cent höher** (b) | 2 Cent höher (d) |
+
+**Septime im Dominantseptakkord:** Sie klingt ruhiger, wenn sie tiefer liegt. Ganz rein (7:4) wären das 31 Cent; im
+Ensemble rückt man sie meist nur etwas tiefer, wie weit, ist Geschmackssache.
+
+**Daran hört man es:** Bei einem reinen Intervall fallen Obertöne beider Töne genau zusammen.
+
+- Große Terz: Der 5. Teilton des unteren Tons trifft den 4. des oberen.
+- Quinte: Der 3. Teilton trifft den 2.
+
+Liegt das Intervall daneben, schweben genau diese Obertöne. Rein eingestimmt wird der Akkord ruhig, er „rastet ein“.
+
+**Was das für die Tuba heißt:**
+
+- **Meist spielt die Tuba den Grundton.** Er ist der Bezug für alle anderen und bleibt in beiden Stimmungen gleich.
+  Deshalb muss er stehen: Rutscht der Bass, müssen alle Terzen und Quinten mitwandern.
+- **Spielt die Tuba die Terz oder Quinte**, z. B. in Umkehrungen, im Tuba-Ensemble oder in Basslinien mit Akkordtönen,
+  gelten die Faustregeln oben.
+- **Der 5. Teilton passt zur Dur-Terz:** Er liegt von Natur aus genau eine reine große Terz über dem Grundton seiner
+  Reihe, also −14 Cent. Spielt die B-Tuba im B-Dur-Akkord das kleine d als Terz, passt der tiefe 5. Teilton genau.
+  Gegen einen d-Drone im Einklang ist derselbe Ton zu tief. Es kommt also darauf an, wozu der Ton gehört.
+
+**Grenzen:**
+
+- **Gilt für gehaltene Akkorde.** In Melodien spielt man oft anders: Leittöne eher etwas höher, damit sie zum
+  Zielton streben, obwohl dieselbe Note als Terz im gehaltenen Akkord tiefer läge. Entscheidend ist die Funktion des
+  Tons im Moment.
+- **Akkordfolgen:** Bleibt man von Akkord zu Akkord streng rein, wandert die Stimmung mit der Zeit weg, um das
+  syntonische Komma (rund 22 Cent). Ensembles gleichen das unbewusst aus, indem sie gehaltene Akkorde rein und Übergänge
+  freier intonieren.
+
+**Üben:** Stimmzug übt zuerst den Einklang (gleichstufig). Intervall- und Akkordübungen in reiner Stimmung sind für
+später geplant. Dabei spielt der Drone Grundton und Quinte, und du ergänzt die Terz, bis der Akkord einrastet.
 
 ## Üben mit Stimmzug
 

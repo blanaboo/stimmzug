@@ -4,7 +4,7 @@
 
 > **Status:** in Entwicklung – siehe [Meilensteine](../../milestones) und [Roadmap](docs/roadmap.md).
 >
-> **Hintergrundwissen:** [Tuba und Intonation](docs/wissen/intonation.md): was ein Cent ist, Stimmton, Temperatur und Einspielen, Naturtonreihe, Ventilkombinationen, Schwebungen.
+> **Hintergrundwissen:** [Tuba und Intonation](docs/wissen/intonation.md): was ein Cent ist, Stimmton, Temperatur und Einspielen, Naturtonreihe, Ventilkombinationen, Schwebungen, Intervalle und Akkorde rein intonieren.
 
 ## Funktionen (geplant)
 
