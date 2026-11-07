@@ -5,8 +5,59 @@ Warum manche Töne auf der Tuba zu hoch oder zu tief liegen und was du dagegen t
 Die Zahlen sind meist **theoretische Werte**. Echte Instrumente weichen davon ab, je nach Bauart, Mundstück und
 Spielweise. Wie deine Tuba tatsächlich liegt, zeigt die Messung, später der Stimm-Assistent in Stimmzug.
 
-Abweichungen werden in **Cent** angegeben: 100 Cent sind ein Halbton. Unter etwa 5 Cent hören die meisten keinen
-Unterschied, ab etwa 10–15 Cent klingt ein Ton gegen einen Bezugston deutlich unsauber.
+## Cent: wie viel ist wie viel?
+
+**Abweichungen in der Tonhöhe misst man in Cent.**
+
+- **Ein Halbton hat 100 Cent.** Ein Ganzton hat 200 Cent, eine Oktave 1200 Cent.
+- **Ein Viertelton** ist ein halber Halbton, also **50 Cent**. Ein Achtelton sind 25 Cent.
+- **In jeder Lage gleich:** Ein Cent ist immer derselbe Bruchteil eines Halbtons, ob Kontra-B oder f'. Darum lassen
+  sich hohe und tiefe Töne damit vergleichen.
+
+| Abweichung | Anteil am Halbton | So klingt es | Beispiel aus diesem Dokument |
+|---|---|---|---|
+| 50 Cent | die Hälfte (Viertelton) | genau zwischen zwei Tönen, klar falsch | 1+2+3 ist theoretisch sogar etwas mehr (+54) |
+| 25–30 Cent | ein Viertel bis knapp ein Drittel | deutlich verstimmt, fällt auch ohne Bezugston auf | 1+3 (+30), 7. Teilton (−31) |
+| 10–15 Cent | ein Zehntel bis ein Siebtel | gegen einen Bezugston deutlich unsauber, Schwebung gut hörbar | 5. Teilton (−14), a' 440 statt 442 Hz (−8) |
+| 5 Cent | ein Zwanzigstel | an der Grenze dessen, was man nacheinander gespielt unterscheidet | Toleranz von Stimmzug |
+| 1–2 Cent | ein Hundertstel bis Fünfzigstel | nur noch als sehr langsame Schwebung im Zusammenklang | |
+
+### Ab wann klingt es schief?
+
+Das hängt vor allem davon ab, ob ein zweiter Ton gleichzeitig klingt. Faustwerte, die je nach Hörer, Lautstärke und
+Klang schwanken:
+
+| Situation | hörbar ab etwa | klar „schief“ ab etwa | Warum |
+|---|---|---|---|
+| Gehaltener Zusammenklang: Einklang, Oktave, Akkord | 3–5 Cent, als leichte Unruhe | 10 Cent | Die Schwebung macht kleine Abweichungen hörbar. |
+| Zwei Töne nacheinander verglichen | Geübte 5 Cent, Ungeübte 10–20 Cent | 20 Cent | Ohne Schwebung bleibt nur das Tonhöhengedächtnis. |
+| Melodie ohne Begleitung | 15–25 Cent | 30 Cent und mehr | Es fehlt der direkte Bezug, das Ohr gleicht vieles aus. |
+| Kurze Töne, schnelle Passagen | deutlich mehr | | Die Töne sind zu kurz, um eine Schwebung zu hören. |
+
+**Was das für die Tuba heißt:**
+
+- **Schwebungen bei tiefen Tönen:** Sie sind bei tiefen Tönen langsam. Ein kurzer Kontra-B, der 10 Cent daneben liegt,
+  fällt kaum auf. Ein gehaltener im Schlussakkord dagegen schon.
+- **Tiefe Töne über die Obertöne:** Reine tiefe Töne kann das Ohr schlecht unterscheiden. Bei der Tuba hilft der
+  obertonreiche Klang: Das Ohr beurteilt die Tonhöhe vor allem an den Obertönen.
+- **Der Bass trägt den Akkord:** Liegt er daneben, passen sich die anderen an oder klingen gegen ihn falsch. Saubere
+  Intonation in der Tuba wirkt deshalb auf das ganze Ensemble.
+- **Richtwerte für Ziele:**
+  - ±5 Cent bei gehaltenen Tönen ist sehr sauber. Deshalb ist das die Standard-Toleranz von Stimmzug.
+  - ±10 Cent ist für viele Ensembles ein gutes Ziel.
+  - Ab 15–20 Cent wird es auch für Zuhörer ohne geschultes Ohr unangenehm.
+
+**Wie fein das Ohr ist, hängt vom Vergleich ab.**
+
+- **Nacheinander gespielt** unterscheiden geübte Ohren etwa 5 Cent.
+- **Gleichzeitig mit einem Bezugston** verrät die Schwebung auch kleinere Abweichungen, wenn man lange genug hinhört
+  (siehe [Schwebungen hören](#schwebungen-hören)).
+
+**Ein Cent in Hertz:**
+
+- Beim a' (442 Hz) ist ein Cent etwa 0,26 Hz, beim Kontra-B (58,5 Hz) nur etwa 0,03 Hz.
+- Für tiefe Töne muss Stimmzug deshalb sehr genau messen.
+- Viele Stimmgeräte zeigen ±50 Cent an: Steht die Nadel ganz am Rand, ist der Ton einen Viertelton daneben.
 
 ## Stimmton a'
 
