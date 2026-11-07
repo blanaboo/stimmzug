@@ -65,7 +65,7 @@ class AudioLabActivity : ComponentActivity() {
     }
 
     companion object {
-        /** Protocol to start right away: "selbsttest" or "tuba". */
+        /** Protocol to start right away: "selbsttest", "tuba" or "drone". */
         const val EXTRA_PROTOCOL = "protocol"
     }
 }

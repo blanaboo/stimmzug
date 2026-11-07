@@ -226,9 +226,9 @@ function Get-QaDeviceInfo {
 function Start-QaLab {
     <#
     Starts the audio lab of the debug build (#33) with a protocol: 'selbsttest' runs on its own (drone through the
-    speaker, about 3 minutes), 'tuba' is the guided measurement. The phone must be unlocked.
+    speaker, about 3 minutes), 'tuba' and 'drone' (#35) are guided measurements. The phone must be unlocked.
     #>
-    param([ValidateSet('selbsttest', 'tuba')] [string] $Protocol = 'selbsttest')
+    param([ValidateSet('selbsttest', 'tuba', 'drone')] [string] $Protocol = 'selbsttest')
     try { Set-QaPermission grant | Out-Null } catch {
         # Some vendors (e.g. OnePlus) refuse pm grant; the app then asks itself and starts after the answer.
         Write-Warning "Cannot grant the microphone permission via adb, confirm the app's dialog instead: $($_.Exception.Message.Split([char]10)[0])"

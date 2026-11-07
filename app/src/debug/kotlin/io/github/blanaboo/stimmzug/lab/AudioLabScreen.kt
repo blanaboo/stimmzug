@@ -76,6 +76,9 @@ private fun StartPanel(state: LabUiState, micPermitted: Boolean, actions: LabAct
         return
     }
     Button(onClick = { actions.start("tuba") }, modifier = Modifier.fillMaxWidth()) { Text("Tuba-Messung starten") }
+    Button(onClick = { actions.start("drone") }, modifier = Modifier.fillMaxWidth()) {
+        Text("Drone-Messung starten (Lautsprecher und Kopfhörer)")
+    }
     OutlinedButton(onClick = { actions.start("selbsttest") }, modifier = Modifier.fillMaxWidth()) {
         Text("Selbsttest ohne Spieler")
     }

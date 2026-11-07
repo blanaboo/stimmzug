@@ -72,7 +72,7 @@ object LabReport {
     private val takeColumns = listOf(
         "take" to "Aufnahme", "source" to "Quelle", "mic" to "Mikro", "note" to "Ton", "status" to "Status",
         "routed_input" to "Eingang", "active_mics" to "Aktive Mikrofone", "agc" to "AGC", "ns" to "NS",
-        "aec" to "AEC", "media_volume" to "Lautstärke", "dsp_load" to "Rechenzeit"
+        "aec" to "AEC", "drone_output" to "Drone über", "media_volume" to "Lautstärke", "dsp_load" to "Rechenzeit"
     )
 
     fun isSession(dir: File) = File(dir, TAKES_FILE).isFile && File(dir, SEGMENTS_FILE).isFile
@@ -99,8 +99,10 @@ object LabReport {
             val options = template.copy(targetHz = targetHz, calibrationSec = calibration)
             val result = Replay.run(clip.samples, clip.sampleRate, options)
             val name = wav.nameWithoutExtension
-            Reports.writeCsv(result, File(charts, "$name.csv"), NoteMath.DEFAULT_A4_HZ)
-            Chart.render(result, "$name – ${take["note"]}", NoteMath.DEFAULT_A4_HZ, File(charts, "$name.png"))
+            // Sessions before #35 have no a4_hz column; they were all recorded at 440 Hz.
+            val a4 = take["a4_hz"]?.toDoubleOrNull() ?: NoteMath.DEFAULT_A4_HZ
+            Reports.writeCsv(result, File(charts, "$name.csv"), a4)
+            Chart.render(result, "$name – ${take["note"]}", a4, File(charts, "$name.png"))
             val frames = result.rows.map { it.frame }
             for (s in takeSegments) {
                 rows += LabRow(take, s, segmentStats(clip.samples, clip.sampleRate, frames, s, targetHz))

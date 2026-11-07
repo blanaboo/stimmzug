@@ -55,6 +55,28 @@ class LabProtocolTest {
     }
 
     @Test
+    fun droneMeasurementComparesSpeakerAndBluetoothAt442Hz() {
+        val protocol = LabProtocols.drone(listOf(bottom, back))
+
+        val notes =
+            listOf(LabProtocols.KONTRA_B, LabProtocols.GROSSES_F, LabProtocols.KLEINES_F, LabProtocols.KLEINES_B)
+        assertEquals(notes + notes + LabProtocols.KONTRA_B, protocol.takes.map { it.noteMidi })
+        val speaker = DroneOutput.SPEAKER
+        val bluetooth = DroneOutput.BLUETOOTH
+        assertEquals(
+            List(4) { speaker } + List(4) { bluetooth } + speaker,
+            protocol.takes.map { it.output }
+        )
+        assertTrue(protocol.takes.all { it.source == LabSource.UNPROCESSED && it.mic == bottom && it.droneOctave == 0 })
+        assertTrue(protocol.takes.all { take -> take.segments.all { it.drone } })
+        assertEquals(listOf(0, 4, 8), protocol.takes.indices.filter { protocol.takes[it].pauseBefore != null })
+        assertEquals(58.27 * 442.0 / 440.0, protocol.takes.first().noteHz, 1e-3)
+        assertEquals("T01-unprocessed-unten-bb1-lautsprecher.wav", protocol.takes.first().fileName)
+        assertEquals("T08-unprocessed-unten-bb3-bluetooth.wav", protocol.takes[7].fileName)
+        assertEquals("kleines f", protocol.takes[2].noteName)
+    }
+
+    @Test
     fun fileNamesAreUniqueAscii() {
         val protocol = LabProtocols.tuba(listOf(bottom, back), sdk = 33)
 

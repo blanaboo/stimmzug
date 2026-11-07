@@ -41,6 +41,13 @@ data class Segment(
     }
 }
 
+/** Where the drone of a take sounds. [key] goes into file names; [SYSTEM] leaves the routing to Android. */
+enum class DroneOutput(val key: String, val label: String) {
+    SYSTEM("system", "Systemwahl"),
+    SPEAKER("lautsprecher", "Handy-Lautsprecher"),
+    BLUETOOTH("bluetooth", "Bluetooth-Kopfhörer")
+}
+
 /** One recording: one source, one microphone, one note, a fixed sequence of [segments]. */
 data class Take(
     /** Unique within the protocol, sortable: "T01". */
@@ -52,23 +59,30 @@ data class Take(
     /** The drone sounds this many octaves above the note. */
     val droneOctave: Int = 0,
     /** Shown before the take; the run waits until the player continues. `null` = continue on its own. */
-    val pauseBefore: String? = null
+    val pauseBefore: String? = null,
+    val output: DroneOutput = DroneOutput.SYSTEM,
+    /** Reference pitch a' in Hz. */
+    val a4Hz: Double = NoteMath.DEFAULT_A4_HZ
 ) {
     init {
         require(segments.isNotEmpty()) { "a take needs segments" }
     }
 
-    val noteHz: Double get() = NoteMath.frequency(noteMidi)
+    val noteHz: Double get() = NoteMath.frequency(noteMidi, a4Hz)
     val noteName: String get() = NoteNames.germanOctaveName(noteMidi)
     val durationSec: Double get() = segments.sumOf { it.durationSec }
     val usesDrone: Boolean get() = segments.any { it.drone }
 
-    /** e.g. "T03-voice_recognition-unten-f1.wav", "…-bb1.wav" for B♭1; ASCII only, so the files survive every tool. */
+    /**
+     * e.g. "T03-voice_recognition-unten-f1.wav", "…-bb1.wav" for B♭1, "…-bb1-bluetooth.wav" with a chosen drone
+     * output; ASCII only, so the files survive every tool.
+     */
     val fileName: String
         get() {
             val note = NoteNames.scientific(noteMidi).lowercase().replace("♭", "b")
             val octave = if (droneOctave > 0) "-drone+$droneOctave" else ""
-            return "$id-${source.name.lowercase()}-${mic.key}-$note$octave.wav"
+            val via = if (output != DroneOutput.SYSTEM) "-${output.key}" else ""
+            return "$id-${source.name.lowercase()}-${mic.key}-$note$octave$via.wav"
         }
 
     /** Start times of the segments in seconds, plus the end of the take as last element. */
@@ -83,12 +97,16 @@ data class LabProtocol(val key: String, val title: String, val takes: List<Take>
     }
 }
 
-/** The two measurement runs of the spike, see docs/field-test/audio-spike.md. */
+/** The measurement runs of the spike, see docs/field-test/audio-spike.md. */
 object LabProtocols {
     const val KONTRA_F = 29
     const val KONTRA_B = 34
     const val GROSSES_F = 41
+    const val KLEINES_F = 53
     const val KLEINES_B = 58
+
+    /** Brass players usually tune to a' = 442 Hz. */
+    const val BRASS_A4_HZ = 442.0
 
     /** Sources for the tuba takes; VOICE_COMMUNICATION is only in the self-test. */
     private val tubaSources = LabSource.entries - LabSource.VOICE_COMMUNICATION
@@ -146,6 +164,47 @@ object LabProtocols {
         }
         return LabProtocol("tuba", "Tuba-Messung", takes, prepSec = 4.0)
     }
+
+    /**
+     * Second measurement (#35), about five minutes: the drone through the phone speaker and through Bluetooth
+     * headphones, from Kontra-B up to kleines b, where the speaker reproduces the drone's fundamental itself.
+     * UNPROCESSED with the first microphone and a' = 442 Hz. The last take forces the speaker while the headphones
+     * stay connected, which a "drone output" setting in the app would need.
+     */
+    fun drone(mics: List<MicChoice>): LabProtocol {
+        val notes = listOf(KONTRA_B, GROSSES_F, KLEINES_F, KLEINES_B)
+        val parts = listOf(
+            DroneOutput.SPEAKER to notes,
+            DroneOutput.BLUETOOTH to notes,
+            DroneOutput.SPEAKER to listOf(KONTRA_B)
+        )
+        val takes = ArrayList<Take>()
+        parts.forEachIndexed { part, (output, partNotes) ->
+            partNotes.forEachIndexed { i, note ->
+                takes += Take(
+                    id(takes.size),
+                    LabSource.UNPROCESSED,
+                    mics.first(),
+                    note,
+                    droneSegments,
+                    pauseBefore = if (i == 0) droneOutputIntros[part] else null,
+                    output = output,
+                    a4Hz = BRASS_A4_HZ
+                )
+            }
+        }
+        return LabProtocol("drone", "Drone-Messung", takes, prepSec = 4.0)
+    }
+
+    private val droneOutputIntros = listOf(
+        "Teil 1 von 3: Drone aus dem Handy-Lautsprecher, 4 Töne von Kontra-B bis kleines b (a' = 442 Hz). " +
+            "Kopfhörer noch im Etui lassen, Medienlautstärke wie beim Üben. Jede Aufnahme: erst zuhören, dann " +
+            "etwas zu tief, sauber und etwas zu hoch spielen, ohne abzusetzen.",
+        "Teil 2 von 3: dieselben 4 Töne, Drone über den Bluetooth-Kopfhörer. Kopfhörer verbinden und einsetzen, " +
+            "Aware-Modus (Transparenz) an, damit du die Tuba gut hörst. Lautstärke angenehm einstellen.",
+        "Teil 3 von 3: Kopfhörer verbunden lassen, aber herausnehmen. Der Drone soll jetzt trotzdem aus dem " +
+            "Handy kommen. Eine Aufnahme Kontra-B."
+    )
 
     private val droneSegments = listOf(
         Segment("drone", "Drone hören – noch nicht spielen", 3.0, playerPlays = false, drone = true),

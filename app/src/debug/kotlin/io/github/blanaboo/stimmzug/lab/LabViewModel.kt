@@ -84,6 +84,7 @@ class LabViewModel(application: Application) : AndroidViewModel(application) {
         return when (key) {
             "selbsttest" -> LabProtocols.selfTest(mics, Build.VERSION.SDK_INT)
             "tuba" -> LabProtocols.tuba(mics, Build.VERSION.SDK_INT)
+            "drone" -> LabProtocols.drone(mics)
             else -> null
         }
     }
@@ -164,13 +165,20 @@ class LabViewModel(application: Application) : AndroidViewModel(application) {
         return index + 1
     }
 
-    /** Pause (if the take has one) and countdown. False if the take must not start: cancel or repeat. */
+    /**
+     * Pause (if the take has one, and as long as its drone output is not connected) and countdown. False if the take
+     * must not start: cancel or repeat.
+     */
     private fun waitBefore(protocol: LabProtocol, take: Take, index: Int): Boolean {
         val header = header(protocol, take, index)
-        take.pauseBefore?.let { text ->
+        var pause = take.pauseBefore ?: recorder.missingOutput(take.output)
+        while (pause != null) {
+            val text = pause
             update { header(it).copy(status = LabStatus.WAITING, message = text, instruction = "Bereit?") }
             proceed.drainPermits()
-            if (!cancelled && !repeat) proceed.acquireUninterruptibly()
+            if (cancelled || repeat) break
+            proceed.acquireUninterruptibly()
+            pause = if (cancelled || repeat) null else recorder.missingOutput(take.output)
         }
         val end = SystemClock.elapsedRealtime() + (protocol.prepSec * MS_PER_SEC).toLong()
         while (!cancelled && !repeat) {
@@ -205,7 +213,7 @@ class LabViewModel(application: Application) : AndroidViewModel(application) {
     private fun record(take: Take, dir: File): TakeResult? {
         val startedAt = SimpleDateFormat("HH:mm:ss", Locale.ROOT).format(Date())
         val file = File(dir, take.fileName)
-        val drone = if (take.usesDrone) DronePlayer() else null
+        val drone = if (take.usesDrone) DronePlayer(recorder.outputDevice(take.output)) else null
         val record = try {
             recorder.start(take)
         } catch (e: IllegalStateException) {
@@ -216,7 +224,7 @@ class LabViewModel(application: Application) : AndroidViewModel(application) {
             return TakeResult(take, "Fehler: ${e.message}", null, 0.0, null, startedAt)
         }
         try {
-            val path = recorder.report(record, drone)
+            val start = recorder.report(record, drone)
             val capture = WavWriter(file, record.sampleRate).use { wav -> capture(take, record, drone, wav) }
             if (repeat) {
                 file.delete()
@@ -227,7 +235,10 @@ class LabViewModel(application: Application) : AndroidViewModel(application) {
                 cancelled -> "abgebrochen"
                 else -> STATUS_OK
             }
-            return TakeResult(take, status, path, capture.seconds, capture.dspLoad, startedAt)
+            // Bluetooth routing can settle only after the take started, so the drone output is read at the end.
+            val path = drone?.let { start.copy(droneOutput = it.routedDevice) } ?: start
+            val misrouted = drone != null && !LabRecorder.matches(take.output, drone.routedOutput)
+            return TakeResult(take, status, path, capture.seconds, capture.dspLoad, startedAt, misrouted)
         } finally {
             record.stop()
             record.release()
@@ -302,14 +313,17 @@ class LabViewModel(application: Application) : AndroidViewModel(application) {
     private fun logLine(r: TakeResult): String {
         val load = r.dspLoad?.let { String.format(Locale.GERMANY, ", Rechenzeit %.0f %%", it * PERCENT) }.orEmpty()
         val input = r.path?.let { " → ${it.routedInput}, ${it.activeMics}" }.orEmpty()
-        return "${r.take.id} ${r.take.source.name} ${r.take.mic.key} ${r.take.noteName}: ${r.status}$input$load"
+        val output = if (r.misrouted) " ⚠ Drone über ${r.path?.droneOutput} statt ${r.take.output.label}" else ""
+        return "${r.take.id} ${r.take.source.name} ${r.take.mic.key} ${r.take.noteName}: ${r.status}$input$load$output"
     }
 
     private fun noteText(take: Take): String {
         val hz = String.format(Locale.GERMANY, "%.2f Hz", take.noteHz)
+        val via = if (take.output == DroneOutput.SYSTEM) "" else " über ${take.output.label}"
         val drone = when {
             !take.usesDrone -> ""
-            take.droneOctave > 0 -> " · Drone ${take.droneOctave} Oktave höher"
+            take.droneOctave > 0 -> " · Drone ${take.droneOctave} Oktave höher$via"
+            via.isNotEmpty() -> " · Drone$via"
             else -> " · mit Drone"
         }
         return "${take.noteName} ($hz)$drone"

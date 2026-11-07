@@ -42,9 +42,22 @@ class LabManifestTest {
         assertEquals(LabManifest.TAKE_COLUMNS.size, row.size)
         assertEquals("UNPROCESSED", row[LabManifest.TAKE_COLUMNS.indexOf("source")])
         assertEquals("58.270", row[LabManifest.TAKE_COLUMNS.indexOf("note_hz")])
+        assertEquals("440.0", row[LabManifest.TAKE_COLUMNS.indexOf("a4_hz")])
+        assertEquals("system", row[LabManifest.TAKE_COLUMNS.indexOf("output")])
+        assertEquals("1", row[LabManifest.TAKE_COLUMNS.indexOf("output_matched")])
         assertEquals("0.0425", row[LabManifest.TAKE_COLUMNS.indexOf("dsp_load")])
         assertEquals(LabManifest.TAKE_COLUMNS.size, LabManifest.takeRow(failed).size)
         assertEquals("", LabManifest.takeRow(failed)[LabManifest.TAKE_COLUMNS.indexOf("routed_input")])
+    }
+
+    @Test
+    fun misroutedDroneIsFlagged() {
+        val bluetooth = LabProtocols.drone(listOf(MicChoice.SYSTEM)).takes[4]
+        val row = LabManifest.takeRow(TakeResult(bluetooth, "ok", path, 19.0, 0.04, "10:15:00", misrouted = true))
+
+        assertEquals("bluetooth", row[LabManifest.TAKE_COLUMNS.indexOf("output")])
+        assertEquals("442.0", row[LabManifest.TAKE_COLUMNS.indexOf("a4_hz")])
+        assertEquals("0", row[LabManifest.TAKE_COLUMNS.indexOf("output_matched")])
     }
 
     @Test
