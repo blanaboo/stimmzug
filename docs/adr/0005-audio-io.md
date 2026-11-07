@@ -80,6 +80,14 @@ Der Besitzer übt lieber mit Kopfhörer. Den Lautsprecher-Betrieb sieht er als n
   prüft das, z. B. mit der F-Tuba. Reicht der Tiefpass dort nicht, empfiehlt die App für diese Töne Kopfhörer.
 - **Oktave zu hoch:** Spielt der Spieler eine Oktave über dem Zielton, dämpft der Tiefpass seinen Ton, bei höheren
   Zieltönen um bis zu rund 12 dB. Die Oktavprüfung (ADR 0002) muss ihn trotzdem erkennen, #60 testet das.
+- **Rest-Zug im Lautsprecher-Betrieb** (ergänzt mit #60): Synthetische Tests mit einem Lautsprecher-Modell, das die
+  gemessenen Drone-Teiltöne nachbildet, zeigen auch mit Tiefpass noch einen kleinen Zug zum Zielton:
+  - Bei gleich lautem Drone und Tuba sind es etwa 10 % der Abweichung (−18 statt −20 ct).
+  - Bei 6 dB lauterem Drone sind es 30–40 %.
+  - Ohne Tiefpass wären es über 80 %, die App würde also einen Treffer melden.
+  - Mit Kopfhörer gibt es keinen Zug.
+- **Der Tiefpass hilft auch ohne Drone:** Bei den Iowa-Aufnahmen (ff) erkennt die App die tiefsten Töne C1–F1
+  deutlich öfter, z. B. E1 in 99 statt 59 % der Frames ([`docs/benchmarks/iowa-tuba.md`](../benchmarks/iowa-tuba.md)).
 - **Bluetooth-Latenz** (typisch 100–300 ms) ist für den gehaltenen Drone egal. Einblenden und Bestätigungsklang kommen
   etwas später an. Ob das stört, zeigt der Praxistest.
 - **Medienlautstärke:** Mit Kopfhörer gilt dessen eigene Lautstärke. Die App muss sie nicht verwalten, sollte aber den

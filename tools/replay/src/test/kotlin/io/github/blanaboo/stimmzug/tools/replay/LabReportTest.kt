@@ -91,6 +91,7 @@ class LabReportTest {
         val markdown = outcome.markdown.readText()
         assertTrue(markdown.startsWith("# Audio-Labor: 20261106-101500-tuba"), markdown)
         assertTrue(markdown.contains("Gerät: Test"), markdown)
+        assertTrue(markdown.contains("mit Tiefpass knapp über dem Ton"), markdown)
         assertTrue(markdown.contains("| T02 | MIC | unten | Kontra-B | play |"), markdown)
         assertTrue(File(out, "charts/T01-voice_recognition-unten-bb1.png").isFile)
         assertTrue(File(out, "charts/T02-mic-unten-bb1.csv").isFile)

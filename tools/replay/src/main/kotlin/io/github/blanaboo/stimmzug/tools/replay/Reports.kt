@@ -72,6 +72,10 @@ object Reports {
             "Ziel: $targetName (${de(note.targetHz, 2)} Hz), Toleranz ±${de(m.toleranceCents, 1)} ct, " +
                 "Haltedauer ${de(m.holdSec, 1)} s, Gnadenzeit ${de(m.graceSec, 2)} s"
         )
+        appendLine(
+            result.lowPassCutoffHz?.let { "Tiefpass vor der Erkennung: ${de(it, 0)} Hz" }
+                ?: "Tiefpass vor der Erkennung: aus"
+        )
         val hitAfter = note.timeToHitSec
         if (note.hit && hitAfter != null) {
             append("Ergebnis: Treffer nach ${de(hitAfter, 2)} s")

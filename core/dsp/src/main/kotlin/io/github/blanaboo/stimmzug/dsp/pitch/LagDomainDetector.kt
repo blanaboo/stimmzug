@@ -128,8 +128,8 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
             // 4th-order Butterworth low-pass (two biquads) at 80 % of the new Nyquist, then keep every d-th sample.
             val cutoff = 0.4 * plan.decimatedRate
             val fs = plan.decimatedRate * d
-            val stage1 = Biquad.lowPass(cutoff, fs, BUTTERWORTH4_Q1)
-            val stage2 = Biquad.lowPass(cutoff, fs, BUTTERWORTH4_Q2)
+            val stage1 = Biquad.lowPass(cutoff, fs, Biquad.BUTTERWORTH4_Q1)
+            val stage2 = Biquad.lowPass(cutoff, fs, Biquad.BUTTERWORTH4_Q2)
             val start = end - plan.inputSamples
             val firstKept = start + warmup(d)
             var out = 0
@@ -229,8 +229,6 @@ abstract class LagDomainDetector(val config: DetectorConfig) : PitchDetector {
 
     protected companion object {
         const val WARMUP_PER_DECIMATION = 64
-        const val BUTTERWORTH4_Q1 = 0.5411961001461970
-        const val BUTTERWORTH4_Q2 = 1.3065629648763766
 
         /** Vertex of the parabola through (i−1, i, i+1): refined position and value. */
         fun parabolicPeak(curve: DoubleArray, i: Int): Pair<Double, Double> {

@@ -42,6 +42,12 @@ data class ToneSpec(
     /** Drone leaking from the loudspeaker into the microphone: frequency and peak level (dBFS). */
     val bleedFrequencyHz: Double? = null,
     val bleedPeakDbfs: Double = -30.0,
+    /**
+     * 4th-order Butterworth high-pass on the bleed only, modelling the phone loudspeaker that hardly reproduces low
+     * partials. About 500 Hz matches the drone partials measured on the Nord 2 in spike #32 within a few dB (relative
+     * to the drone's level: Kontra-B H2 −48, H3 −35, H4 −24 dB; kleines b H1 −19 dB). `null` = full spectrum.
+     */
+    val bleedHighPassHz: Double? = null,
     val seed: Long = 1L
 ) {
     val totalSec: Double get() = leadInSec + toneSec + releaseSec + tailSec
@@ -62,9 +68,7 @@ object TubaToneGenerator {
         val random = Random(spec.seed)
 
         spec.tonePeakDbfs?.let { renderTone(spec, out, random, SignalMath.dbToAmplitude(it)) }
-        spec.bleedFrequencyHz?.let {
-            renderSteadyTone(it, fs, out, SignalMath.dbToAmplitude(spec.bleedPeakDbfs), random)
-        }
+        spec.bleedFrequencyHz?.let { renderBleed(spec, it, fs, out, random) }
         spec.noiseRmsDbfs?.let {
             val sigma = SignalMath.dbToAmplitude(it)
             for (i in out.indices) out[i] += sigma * random.nextGaussian()
@@ -112,6 +116,20 @@ object TubaToneGenerator {
         if (i < sustainEnd) return attack
         val sinceRelease = (i - sustainEnd) / fs
         return attack * (1.0 - sinceRelease / spec.releaseSec).coerceAtLeast(0.0)
+    }
+
+    private fun renderBleed(spec: ToneSpec, frequencyHz: Double, fs: Double, out: DoubleArray, random: Random) {
+        val peak = SignalMath.dbToAmplitude(spec.bleedPeakDbfs)
+        val speakerHz = spec.bleedHighPassHz
+        if (speakerHz == null) {
+            renderSteadyTone(frequencyHz, fs, out, peak, random)
+            return
+        }
+        val bleed = DoubleArray(out.size)
+        renderSteadyTone(frequencyHz, fs, bleed, peak, random)
+        Biquad.highPass(speakerHz, fs, Biquad.BUTTERWORTH4_Q1).processInPlace(bleed)
+        Biquad.highPass(speakerHz, fs, Biquad.BUTTERWORTH4_Q2).processInPlace(bleed)
+        for (i in out.indices) out[i] += bleed[i]
     }
 
     private fun renderSteadyTone(frequencyHz: Double, fs: Double, out: DoubleArray, peak: Double, random: Random) {

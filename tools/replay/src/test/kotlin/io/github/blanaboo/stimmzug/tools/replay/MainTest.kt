@@ -7,6 +7,7 @@ import java.io.File
 import java.io.PrintStream
 import javax.imageio.ImageIO
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -47,6 +48,7 @@ class MainTest {
         assertTrue(r.out.contains("Ziel: Kontra-B (58,27 Hz)"), r.out)
         assertTrue(r.out.contains("Ergebnis: Treffer nach"), r.out)
         assertTrue(r.out.contains("Kalibrierung: Umgebung"), r.out)
+        assertTrue(r.out.contains("Tiefpass vor der Erkennung: 250 Hz"), r.out)
         val txt = File(outDir, "kontra-b.txt").readText(Charsets.UTF_8)
         assertTrue(txt.contains("Gate öffnet ab") && txt.contains("Toleranz ±5,0 ct"), txt)
 
@@ -104,6 +106,19 @@ class MainTest {
         assertEquals(3, args.options.match.medianFrames)
         assertEquals(0.7, args.options.match.minClarity)
         assertEquals(0.0, args.options.match.preListenSec)
+        assertTrue(args.options.targetLowPass)
+        assertFalse(parseArguments(listOf("x.wav", "--no-lowpass")).options.targetLowPass)
+    }
+
+    @Test
+    fun `the summary names the low-pass, which can be switched off`() {
+        val wav = recording("kleines-b.wav", 34)
+        val filtered = cli(wav.path, "--target", "kleines b", "--out", File(dir, "mit").path)
+        assertEquals(0, filtered.code, filtered.err)
+        assertTrue(filtered.out.contains("Tiefpass vor der Erkennung: 326 Hz"), filtered.out)
+        val unfiltered = cli(wav.path, "--target", "34", "--no-lowpass", "--out", File(dir, "ohne").path)
+        assertEquals(0, unfiltered.code, unfiltered.err)
+        assertTrue(unfiltered.out.contains("Tiefpass vor der Erkennung: aus"), unfiltered.out)
     }
 
     @Test

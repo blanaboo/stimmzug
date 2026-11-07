@@ -132,6 +132,10 @@ class IowaTubaRegressionTest {
             appendLine("Ziel = Nominalton bei a′ = 440 Hz. Ausgewertet wird der stabile Teil jedes Tons:")
             appendLine("Pegel höchstens ${STEADY_DB.toInt()} dB unter dem Maximum,")
             appendLine("stimmhaft mit Klarheit ≥ ${fmt(MIN_CLARITY, 1)}.")
+            appendLine(
+                "Erkennung wie in der App mit Tiefpass vor der Erkennung bei max(250 Hz, 1,4 × Ziel) " +
+                    "([ADR 0005](../adr/0005-audio-io.md))."
+            )
             appendLine("Die Abweichungen sind die **Intonation des Spielers**, nicht Messfehler der Erkennung.")
             appendLine()
             appendLine(

@@ -22,7 +22,9 @@ data class ReplayOptions(
     /** The first seconds (nobody plays) calibrate the level gate; 0 = no gate, every voiced frame counts. */
     val calibrationSec: Double = 0.0,
     /** Hit logic; no pre-listen by default, the player's timing is in the recording. */
-    val match: MatchConfig = MatchConfig(preListenSec = 0.0)
+    val match: MatchConfig = MatchConfig(preListenSec = 0.0),
+    /** Low-pass just above the target before the detector, as in the app (ADR 0005); `false` for comparisons. */
+    val targetLowPass: Boolean = true
 ) {
     init {
         require(targetHz == null || targetHz > 0.0) { "Zielton muss positiv sein" }
@@ -45,11 +47,14 @@ class ReplayResult(
     val rows: List<ReplayRow>,
     val calibration: CalibrationResult?,
     /** Hit logic outcome, `null` in free mode. */
-    val note: NoteResult?
+    val note: NoteResult?,
+    /** Cutoff of the low-pass before the detector, `null` if the input was not filtered. */
+    val lowPassCutoffHz: Double? = null
 )
 
 /**
- * Runs a recording through the same chain as the app: PitchTracker → (LevelCalibration → LevelGate) →
+ * Runs a recording through the same chain as the app: PitchTracker with the target low-pass → (LevelCalibration →
+ * LevelGate) →
  * MatchStateMachine. Pure function of the samples and options, so it can be called repeatedly for parameter
  * sweeps.
  */
@@ -60,7 +65,8 @@ object Replay {
             DetectorChoice.MPM -> MpmPitchDetector()
             DetectorChoice.YIN -> YinPitchDetector()
         }
-        val tracker = PitchTracker(sampleRate, detector, options.hopSec).apply { targetHz = options.targetHz }
+        val tracker = PitchTracker(sampleRate, detector, options.hopSec, useTargetLowPass = options.targetLowPass)
+            .apply { targetHz = options.targetHz }
         val frames = tracker.processAll(samples)
 
         val calibrating = options.calibrationSec > 0.0
@@ -86,6 +92,14 @@ object Replay {
                 ReplayRow(frame, inCalibration = false, passedGate = passed, status = machine?.onFrame(frame, passed))
             }
         }
-        return ReplayResult(sampleRate, samples.size / sampleRate, options, rows, calibration, machine?.result())
+        return ReplayResult(
+            sampleRate,
+            samples.size / sampleRate,
+            options,
+            rows,
+            calibration,
+            machine?.result(),
+            tracker.lowPassCutoffHz
+        )
     }
 }

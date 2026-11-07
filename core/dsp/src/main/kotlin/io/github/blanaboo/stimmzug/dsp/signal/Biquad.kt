@@ -40,6 +40,10 @@ class Biquad private constructor(
     companion object {
         const val BUTTERWORTH_Q = 0.7071067811865476
 
+        /** Q of the two pole pairs of a 4th-order Butterworth filter built from two biquads. */
+        const val BUTTERWORTH4_Q1 = 0.5411961001461970
+        const val BUTTERWORTH4_Q2 = 1.3065629648763766
+
         fun lowPass(cutoffHz: Double, sampleRate: Double, q: Double = BUTTERWORTH_Q): Biquad {
             val (cosW, alpha) = prewarp(cutoffHz, sampleRate, q)
             return normalized(

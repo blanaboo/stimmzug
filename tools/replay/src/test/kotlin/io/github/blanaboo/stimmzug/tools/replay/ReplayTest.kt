@@ -24,6 +24,7 @@ class ReplayTest {
         // Tuba from 2.0 s, machine from 1.5 s: 0.5 s waiting + onset + 3 s hold.
         assertTrue(note.timeToHitSec!! in 3.5..4.0, "time to hit ${note.timeToHitSec}")
         assertNotNull(result.calibration)
+        assertEquals(250.0, result.lowPassCutoffHz)
         assertTrue(result.rows.filter { it.frame.timeSec <= 1.5 }.all { it.inCalibration && it.status == null })
         assertTrue(
             result.rows.filter {
@@ -54,6 +55,7 @@ class ReplayTest {
             val result = Replay.run(samples, FS.toDouble(), ReplayOptions(detector = detector))
             assertNull(result.note)
             assertNull(result.calibration)
+            assertNull(result.lowPassCutoffHz, "no low-pass without target")
             assertTrue(result.rows.all { it.status == null && !it.inCalibration })
             val steady = result.rows.filter { it.frame.timeSec in 3.0..6.5 && it.passedGate }
             assertTrue(steady.size > 150, "$detector: ${steady.size} voiced frames")
