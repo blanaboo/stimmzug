@@ -4,4 +4,68 @@
     <string name="tagline">Intonationstrainer für Tuba</string>
     <string name="reference_note">%1$s · %2$s Hz</string>
     <string name="status_in_development">In Entwicklung · Version %1$s</string>
+    <string name="back">Zurück</string>
+
+    <!-- Home: active instrument -->
+    <string name="home_profile_active">Instrument: %1$s</string>
+    <string name="home_profiles">Instrumente</string>
+    <string name="home_no_profile">Noch keine Tuba angelegt.</string>
+    <string name="home_create_profile">Tuba anlegen</string>
+    <string name="home_use_default">Standard verwenden (B-Tuba, 4 Ventile)</string>
+
+    <!-- Instrument profiles (#40) -->
+    <string name="key_b_flat">B-Tuba</string>
+    <string name="key_f">F-Tuba</string>
+    <string name="key_e_flat">Es-Tuba</string>
+    <string name="key_c">C-Tuba</string>
+    <string name="key_pedal">Pedalton %1$s</string>
+
+    <string name="interval_semitone">Halbton</string>
+    <string name="interval_whole_tone">Ganzton</string>
+    <string name="interval_large_whole_tone">großer Ganzton</string>
+    <string name="interval_minor_third">kleine Terz</string>
+    <string name="interval_major_third">große Terz</string>
+    <string name="interval_fourth">Quarte</string>
+
+    <plurals name="summary_valves">
+        <item quantity="one">%d Ventil</item>
+        <item quantity="other">%d Ventile</item>
+    </plurals>
+    <string name="summary_compensating">kompensierend</string>
+    <string name="summary_triggers">Trigger: %1$s</string>
+    <string name="trigger_main_slide">Hauptstimmzug</string>
+    <string name="trigger_valve">%1$d. Ventilzug</string>
+
+    <string name="profiles_title">Instrumente</string>
+    <string name="profiles_add">Tuba hinzufügen</string>
+    <string name="profiles_active">aktiv</string>
+    <string name="profiles_select">Als aktive Tuba wählen</string>
+    <string name="profiles_edit">Bearbeiten</string>
+    <string name="profiles_delete">Löschen</string>
+    <string name="profiles_delete_title">Profil löschen?</string>
+    <string name="profiles_delete_text">„%1$s“ wird gelöscht. Frühere Übungsprotokolle behalten ihre Angaben.</string>
+    <string name="profiles_cancel">Abbrechen</string>
+
+    <string name="wizard_title_new">Tuba anlegen</string>
+    <string name="wizard_title_edit">Tuba bearbeiten</string>
+    <string name="wizard_step">Schritt %1$d von %2$d</string>
+    <string name="wizard_next">Weiter</string>
+    <string name="wizard_save">Speichern</string>
+    <string name="wizard_key_title">In welcher Stimmung ist die Tuba?</string>
+    <string name="wizard_maker_title">Hersteller und Modell</string>
+    <string name="wizard_maker_hint">Optional. Hilft dir, deine Tuben auseinanderzuhalten.</string>
+    <string name="wizard_maker_label">Hersteller</string>
+    <string name="wizard_model_label">Modell</string>
+    <string name="wizard_valves_title">Wie viele Ventile hat sie?</string>
+    <string name="wizard_valves_standard">Ventil 1 bis 3: Ganzton, Halbton, kleine Terz</string>
+    <string name="wizard_valve_number">%1$d. Ventil</string>
+    <string name="wizard_valve_choose">Bitte wählen</string>
+    <string name="wizard_compensation_title">Hat sie ein Kompensationssystem?</string>
+    <string name="wizard_compensation_hint">Zusätzliche Rohre, die Griffe mit dem 4. Ventil von selbst korrigieren.</string>
+    <string name="wizard_compensation_no">Nein</string>
+    <string name="wizard_compensation_yes">Ja, kompensierend</string>
+    <string name="wizard_triggers_title">Welche Züge haben einen Trigger?</string>
+    <string name="wizard_triggers_hint">Trigger sind Züge, die du beim Spielen mit Daumen oder Finger verstellst. Mehrere oder keiner.</string>
+    <string name="wizard_name_title">Wie soll das Profil heißen?</string>
+    <string name="wizard_name_label">Name</string>
 </resources>
