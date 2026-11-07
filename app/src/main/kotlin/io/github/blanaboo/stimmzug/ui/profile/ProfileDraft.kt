@@ -73,6 +73,11 @@ data class ProfileDraft(
     fun toggleTrigger(valve: Int): ProfileDraft =
         copy(triggerValves = if (valve in triggerValves) triggerValves - valve else triggerValves + valve)
 
+    val hasTriggers: Boolean get() = mainSlideTrigger || triggerValves.isNotEmpty()
+
+    /** The explicit answer "no trigger" (#46). */
+    fun withoutTriggers(): ProfileDraft = copy(triggerValves = emptySet(), mainSlideTrigger = false)
+
     /** Whether the player may leave [step]: every valve needs an interval, and the profile a name. */
     fun isComplete(step: WizardStep, suggestedName: String): Boolean = when (step) {
         WizardStep.VALVES -> extraValves.all { it != null }

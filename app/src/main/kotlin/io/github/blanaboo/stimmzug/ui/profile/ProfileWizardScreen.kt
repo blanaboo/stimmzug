@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -246,6 +247,13 @@ private fun CompensationStep(draft: ProfileDraft, change: Change) {
 @Composable
 private fun TriggersStep(draft: ProfileDraft, change: Change) {
     Hint(stringResource(R.string.wizard_triggers_hint))
+    // Checked while nothing else is: makes "no trigger" an answer instead of a question left open.
+    CheckRow(
+        checked = !draft.hasTriggers,
+        title = stringResource(R.string.trigger_none),
+        onToggle = { change { it.withoutTriggers() } }
+    )
+    HorizontalDivider()
     CheckRow(
         checked = draft.mainSlideTrigger,
         title = stringResource(R.string.trigger_main_slide),

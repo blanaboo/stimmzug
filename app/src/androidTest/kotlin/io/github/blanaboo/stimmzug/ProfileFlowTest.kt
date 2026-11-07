@@ -3,6 +3,8 @@ package io.github.blanaboo.stimmzug
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
@@ -67,7 +69,10 @@ class ProfileFlowTest {
         compose.onNodeWithTag(TAG_WIZARD_NEXT).assertIsEnabled()
         next()
         next() // compensation: no
+        // "No trigger" is the answer until a slide is chosen (#46).
+        compose.onNodeWithText("Kein Trigger").assertIsOn()
         compose.onNodeWithText("2. Ventilzug").performClick()
+        compose.onNodeWithText("Kein Trigger").assertIsOff()
         next()
         compose.onNodeWithTag(TAG_WIZARD_NAME).assertTextContains("F-Tuba Melton Tradition 4250")
         compose.onNodeWithTag(TAG_WIZARD_NAME).performTextReplacement(name)
