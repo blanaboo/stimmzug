@@ -19,8 +19,11 @@ Erfasst am 2026-11-05 (#4).
 
 | | |
 |---|---|
-| Audioquelle `UNPROCESSED` | **nicht unterstützt** (`config_supportAudioSourceUnprocessed = false`, d. h. `AudioManager.getProperty(PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED)` liefert `null`) |
-| Mikrofone | zwei eingebaute: unten (`BUILTIN_MIC`) und Rückseite (`BACK_MIC`) |
+| Audioquelle `UNPROCESSED` | **nicht zugesichert** (`config_supportAudioSourceUnprocessed = false`, d. h. `AudioManager.getProperty(PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED)` liefert `null`), **funktioniert aber** (#32): roher Weg ohne AGC und Rauschunterdrückung, mindestens 18 dB Reserve bei mf aus 1 m |
+| Verarbeiteter Weg | `VOICE_RECOGNITION`, `VOICE_PERFORMANCE`, `MIC` und `CAMCORDER` liefern dasselbe Signal: Hochpass, Limiter (Spitzen schon bei mf bei −1 dBFS), etwa 25 dB mehr Verstärkung. `VOICE_COMMUNICATION` liefert digitale Stille. |
+| Mikrofone | zwei eingebaute: unten (`BUILTIN_MIC`, `SPH1642HT5H`, laut Hersteller 80 Hz −2 dB) und Rückseite (`BACK_MIC`). Mit `UNPROCESSED` ist unten etwa 2 dB lauter, sonst kaum ein Unterschied. |
+| Lautsprecher | gibt tiefe Grundtöne kaum wieder (Kontra-B erst ab etwa 200 Hz), der Drone kommt mit −27 bis −32 dBFS im Mikrofon an (`UNPROCESSED`, Medienlautstärke 12/16) |
+| Bluetooth-Ausgabe | A2DP. `AudioTrack.setPreferredDevice` legt den Drone auf den Lautsprecher, auch wenn ein Kopfhörer verbunden ist. Lautsprecher und Kopfhörer haben getrennte Medienlautstärken. |
 | Aufnahmeformat | PCM 16 Bit, 8/16/32/44,1/48 kHz, mono oder stereo |
 | Aufnahmepfade | normal, schnell (`FAST`), AAudio-MMAP (`MMAP_NOIRQ`) |
 | Externe Eingänge | Headset mit Kabel, USB-Audio (`USB_DEVICE`, `USB_HEADSET`), Bluetooth-SCO |
@@ -31,15 +34,17 @@ Erfasst am 2026-11-05 (#4).
 
 ### Folgen für Stimmzug
 
-- **Audioquelle im M2-Spike vergleichen.** Die Roadmap setzt auf `UNPROCESSED`, das Gerät sichert diese Quelle
-  aber nicht zu. Im Spike werden deshalb `UNPROCESSED`, `VOICE_RECOGNITION` und `MIC` auf dem Nord 2 verglichen:
-  Pegel und Klarheit tiefer Töne, Frequenzgang unter 100 Hz, ob Rauschunterdrückung oder automatische
-  Verstärkung (AGC) eingreifen. `VOICE_RECOGNITION` soll laut Android-Kompatibilitätsdefinition ohne
-  Rauschunterdrückung und AGC arbeiten. Für Frequenzen unter 100 Hz macht Android für keine Quelle Zusagen.
-- **Welches Mikrofon?** Das Handy steht beim Üben auf dem Notenständer. Ob das untere oder das hintere Mikrofon
-  die Tuba besser aufnimmt, klärt ebenfalls der Spike.
+Gemessen im Spike #32, Ergebnisse in [`docs/field-test/audio-spike.md`](field-test/audio-spike.md#ergebnisse),
+Entscheidung in [ADR 0005](adr/0005-audio-io.md).
+
+- **Audioquelle `UNPROCESSED`**, obwohl das Gerät sie nicht zusichert. Die App prüft sie durch Öffnen und nimmt
+  sonst `VOICE_RECOGNITION`.
+- **Standardmikrofon:** Die App wählt kein Mikrofon aus.
+- **Drone am besten über Kopfhörer:** Über Bluetooth-Kopfhörer (Bose QC Earbuds II, ANC aus) kommt der Drone nicht
+  mehr messbar im Mikrofon an.
+- **Lautsprecher-Betrieb:** Er braucht den Tiefpass vor der Erkennung. Bis kleines b ist das gemessen.
 - **Externes Mikrofon als Ausweg.** Falls die eingebauten Mikrofone im Bass nicht reichen, nimmt das Gerät
-  USB-Audio-Mikrofone an.
+  USB-Audio-Mikrofone an. Bisher war das nicht nötig.
 
 ### Verbindung zum Entwicklungsrechner
 

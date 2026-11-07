@@ -67,7 +67,7 @@ Messung: 3 s zuhören, dann ohne abzusetzen 5 s **etwas zu tief**, 6 s **sauber*
 | Teil | Drone über | Töne |
 |---|---|---|
 | 1 | Handy-Lautsprecher, Medienlautstärke wie beim Üben | Kontra-B, großes F, kleines f, kleines b |
-| 2 | Bluetooth-Kopfhörer: verbinden, einsetzen, Aware-Modus (Transparenz) an | dieselben 4 Töne |
+| 2 | Bluetooth-Kopfhörer: verbinden, einsetzen, Geräuschunterdrückung (ANC) aus oder niedrig, ein Ohrhörer reicht | dieselben 4 Töne |
 | 3 | Handy-Lautsprecher, Kopfhörer bleibt verbunden, aber herausgenommen | Kontra-B |
 
 - „Etwas zu tief/hoch“ heißt: so weit, dass du die Schwebung deutlich hörst.
@@ -79,7 +79,7 @@ Messung: 3 s zuhören, dann ohne abzusetzen 5 s **etwas zu tief**, 6 s **sauber*
 **Danach** brauche ich von dir:
 
 - Hast du den Drone mit Kopfhörer gut gehört, und die Tuba auch?
-- War Aware-Modus an, oder hast du nur einen Ohrhörer getragen?
+- Welche ANC-Stufe, und ein oder zwei Ohrhörer?
 - Ging bei einer Aufnahme etwas schief?
 
 ## Für die Entwicklung
@@ -143,4 +143,75 @@ Ort auf dem Handy: `/sdcard/Android/data/io.github.blanaboo.stimmzug.debug/files
 
 ## Ergebnisse
 
-Folgen nach der Messung in #32.
+Alle Messungen auf dem OnePlus Nord 2 mit der B-Tuba des Besitzers, Abstand etwa 1 m. Ausführliche Tabellen stehen in
+#32. Die Entscheidung steht in [ADR 0005](../adr/0005-audio-io.md), umgesetzt wird sie in #60 und #61.
+
+### Selbsttest ohne Spieler (05.11.)
+
+Sitzung `20261105-200857-selbsttest`.
+
+- **Zwei Eingangswege:**
+  - `VOICE_RECOGNITION`, `VOICE_PERFORMANCE`, `MIC` und `CAMCORDER` liefern dasselbe verarbeitete Signal. Die
+    Mikrofonwahl wirkt dort nicht.
+  - `UNPROCESSED` ist ein eigener, roher Weg mit etwa 25 dB weniger Verstärkung.
+- **Keine Regelung:** Ein gleichbleibender Ton wird in keiner Quelle leiser geregelt (keine AGC, keine
+  Rauschunterdrückung).
+- **`VOICE_COMMUNICATION`** liefert digitale Stille.
+
+### Erste Tuba-Messung (06.11., Drone über Lautsprecher, a' = 440 Hz)
+
+Sitzung `20261106-221217-tuba`, 24 Aufnahmen.
+
+- **Quellen:**
+  - Alle erkennen Kontra-F und großes F zuverlässig.
+  - Der verarbeitete Weg hat einen Limiter, die Spitzen liegen schon bei mf genau bei −1 dBFS.
+  - `UNPROCESSED` hat mindestens 18 dB Reserve und einen 8–16 dB stärkeren Grundton.
+- **Mikrofon:** Unten und hinten unterscheiden sich kaum, unten ist etwa 2 dB lauter.
+- **Drone über Lautsprecher:**
+  - Der Detektor meldet in allen 4 Aufnahmen den Drone statt der Tuba.
+  - Ein Tiefpass bei 250 Hz vor der Erkennung behebt das.
+
+### Zweite Messung (07.11., Lautsprecher gegen Bluetooth-Kopfhörer, a' = 442 Hz)
+
+Sitzung `20261107-231315-drone`, alle 9 Aufnahmen ok.
+
+- **Kopfhörer:** Bose QC Earbuds II, ANC aus, ein Ohrhörer. Drone und Tuba waren gut zu hören, auch die Schwebungen.
+- **Medienlautstärke:** Lautsprecher 12/16, Kopfhörer 9/16. Android führt beide getrennt.
+- **Tuba noch kalt:** Der Spieler musste viel arbeiten, um die Stimmung hochzubekommen.
+
+| | Lautsprecher | Kopfhörer |
+|---|---|---|
+| Drone am Mikrofon, Spieler still | −27 … −32 dBFS | −75 … −79 dBFS, also Raumrauschen |
+| Erkennung ohne Filter | folgt dem Drone, das Pegel-Gate bleibt zu | folgt der Tuba, 95–100 % stimmhaft |
+| Erkennung mit Tiefpass max(250 Hz, 1,4 × Ton) | folgt der Tuba, Kontra-B bis kleines b | unverändert (≤ 1 ct) |
+
+Wo die Tuba im Abschnitt „sauber“ lag (Median, mit Tiefpass, Replay bei a' = 442 Hz):
+
+| Ton | Lautsprecher | Kopfhörer |
+|---|---|---|
+| Kontra-B | −10 ct (T01), −13 ct (T09) | −10 ct |
+| großes F | −16 ct | −12 ct |
+| kleines f | −25 ct | −17 ct |
+| kleines b | −24 ct | −14 ct |
+
+- **Tiefpass knapp über dem Grundton:**
+  - Die Werte mit Lautsprecher stimmen mit einer unabhängigen Teiltonanalyse überein.
+  - Bei höherer Grenzfrequenz zieht der Drone die Messung zum Zielton. Beim kleinen f ergaben 700 Hz −6 ct statt
+    −25 ct, die App würde also fälschlich „sauber“ melden.
+- **„Sauber“ lag überall 10–25 ct zu tief.** Das ist die kalte Tuba, nicht die Erkennung. Bei der ersten Messung mit
+  440 Hz lag „sauber“ beim Kontra-B etwa bei 0 bis +9 ct. Passt zum Hinweis aufs Einspielen (#44).
+- **„Etwas zu hoch“** blieb beim kleinen f und kleinen b mit Kopfhörer unter dem Drone. Mit der kalten Tuba reichten
+  Luft und Ansatz nicht, um über den Drone zu kommen.
+- **Teil 3:** Der Drone lief über den Lautsprecher, obwohl die Bose verbunden war. Die App kann den Ausgang also frei
+  wählen.
+- **Bluetooth-Mikrofon:** Der Eingang blieb immer das eingebaute Mikrofon.
+- **Rechenzeit** der Erkennung (Debug-Version): 12–33 % eines Kerns.
+
+### Folgerungen
+
+- **Audioquelle `UNPROCESSED`**, Fallback `VOICE_RECOGNITION`.
+- **Drone am besten über Kopfhörer**, der Lautsprecher bleibt wählbar.
+- **Tiefpass vor der Erkennung**, Grenzfrequenz max(250 Hz, 1,4 × Zielton).
+- **Offen:**
+  - Rechenzeit in der Release-Version (#61).
+  - Im Praxistest (M4): Lautsprecher-Betrieb über kleinem b, Bluetooth-Latenz beim Einblenden und Bestätigungsklang.
