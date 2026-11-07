@@ -5,8 +5,34 @@ Warum manche Töne auf der Tuba zu hoch oder zu tief liegen und was du dagegen t
 Die Zahlen sind meist **theoretische Werte**. Echte Instrumente weichen davon ab, je nach Bauart, Mundstück und
 Spielweise. Wie deine Tuba tatsächlich liegt, zeigt die Messung, später der Stimm-Assistent in Stimmzug.
 
-Abweichungen werden in **Cent** angegeben: 100 Cent sind ein Halbton. Unter etwa 5 Cent hören die meisten keinen
-Unterschied, ab etwa 10–15 Cent klingt ein Ton gegen einen Bezugston deutlich unsauber.
+## Cent: wie viel ist wie viel?
+
+**Abweichungen in der Tonhöhe misst man in Cent.**
+
+- **Ein Halbton hat 100 Cent.** Ein Ganzton hat 200 Cent, eine Oktave 1200 Cent.
+- **Ein Viertelton** ist ein halber Halbton, also **50 Cent**. Ein Achtelton sind 25 Cent.
+- **In jeder Lage gleich:** Ein Cent ist immer derselbe Bruchteil eines Halbtons, ob Kontra-B oder f'. Darum lassen
+  sich hohe und tiefe Töne damit vergleichen.
+
+| Abweichung | Anteil am Halbton | So klingt es | Beispiel aus diesem Dokument |
+|---|---|---|---|
+| 50 Cent | die Hälfte (Viertelton) | genau zwischen zwei Tönen, klar falsch | 1+2+3 ist theoretisch sogar etwas mehr (+54) |
+| 25–30 Cent | ein Viertel bis knapp ein Drittel | deutlich verstimmt, fällt auch ohne Bezugston auf | 1+3 (+30), 7. Teilton (−31) |
+| 10–15 Cent | ein Zehntel bis ein Siebtel | gegen einen Bezugston deutlich unsauber, Schwebung gut hörbar | 5. Teilton (−14), a' 440 statt 442 Hz (−8) |
+| 5 Cent | ein Zwanzigstel | an der Grenze dessen, was man nacheinander gespielt unterscheidet | Toleranz von Stimmzug |
+| 1–2 Cent | ein Hundertstel bis Fünfzigstel | nur noch als sehr langsame Schwebung im Zusammenklang | |
+
+**Wie fein das Ohr ist, hängt vom Vergleich ab.**
+
+- **Nacheinander gespielt** unterscheiden geübte Ohren etwa 5 Cent.
+- **Gleichzeitig mit einem Bezugston** verrät die Schwebung auch kleinere Abweichungen, wenn man lange genug hinhört
+  (siehe [Schwebungen hören](#schwebungen-hören)).
+
+**Ein Cent in Hertz:**
+
+- Beim a' (442 Hz) ist ein Cent etwa 0,26 Hz, beim Kontra-B (58,5 Hz) nur etwa 0,03 Hz.
+- Für tiefe Töne muss Stimmzug deshalb sehr genau messen.
+- Viele Stimmgeräte zeigen ±50 Cent an: Steht die Nadel ganz am Rand, ist der Ton einen Viertelton daneben.
 
 ## Stimmton a'
 
