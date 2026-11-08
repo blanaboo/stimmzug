@@ -8,10 +8,17 @@ import io.github.blanaboo.stimmzug.dsp.pitch.PitchEstimate
  * Opens at [openThresholdDb] and closes again only below [closeThresholdDb] (= open − [hysteresisDb]), so a tone
  * hovering around the threshold does not flicker. Feed it every frame in time order. Not thread-safe.
  */
-class LevelGate(val openThresholdDb: Double, val hysteresisDb: Double = DEFAULT_HYSTERESIS_DB) {
+class LevelGate(openThresholdDb: Double, val hysteresisDb: Double = DEFAULT_HYSTERESIS_DB) {
 
     constructor(calibration: CalibrationResult, hysteresisDb: Double = DEFAULT_HYSTERESIS_DB) :
         this(calibration.openThresholdDb, hysteresisDb)
+
+    /** Level at which the gate opens; may be moved while running (per-note threshold, #24), the state is kept. */
+    var openThresholdDb: Double = openThresholdDb
+        set(value) {
+            require(value.isFinite()) { "open threshold must be finite, was $value" }
+            field = value
+        }
 
     init {
         require(openThresholdDb.isFinite()) { "open threshold must be finite, was $openThresholdDb" }
