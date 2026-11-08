@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Debug builds only: the audio lab of the audio spike (#32, #33) records from the microphone. -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
     <application>
         <!-- Own task, so the lab and the app can be switched between in the recents list. -->
         <activity
