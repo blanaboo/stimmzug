@@ -1,13 +1,9 @@
 package io.github.blanaboo.stimmzug.data.profile
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
+import io.github.blanaboo.stimmzug.data.MemoryStore
 import io.github.blanaboo.stimmzug.dsp.music.InstrumentProfile
 import io.github.blanaboo.stimmzug.dsp.music.TubaKey
 import io.github.blanaboo.stimmzug.dsp.music.ValveInterval
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -77,14 +73,5 @@ class ProfileStorageTest {
         val left = repository.state.first()
         assertEquals(listOf(melton), left.profiles)
         assertEquals(melton, left.active)
-    }
-
-    /** DataStore in memory: the file-based one cannot replace files atomically on Windows development machines. */
-    private class MemoryStore : DataStore<Preferences> {
-        private val flow = MutableStateFlow(emptyPreferences())
-        override val data: Flow<Preferences> = flow
-
-        override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences =
-            transform(flow.value).also { flow.value = it }
     }
 }

@@ -46,7 +46,7 @@ class MatchScenarioTest {
         val calibration = LevelCalibration()
         frames.filter { it.timeSec in 0.5..NOTE_START }.forEach { calibration.add(it.estimate.levelDb) }
         val gate = LevelGate(calibration.result())
-        val machine = MatchStateMachine().apply { start(target, NOTE_START) }
+        val machine = MatchStateMachine(MatchConfig(holdSec = HOLD_SEC)).apply { start(target, NOTE_START) }
         val statuses = frames.filter { it.timeSec > NOTE_START }.map { machine.onFrame(it, gate.passes(it.estimate)) }
         return Outcome(statuses, machine.result())
     }
@@ -98,6 +98,8 @@ class MatchScenarioTest {
     }
 
     private companion object {
+        /** These time lines were written for a 3 s hold; the default is 5 s (#68). */
+        const val HOLD_SEC = 3.0
         const val FS = 48_000.0
         const val NOTE_START = 2.0
         const val TUBA_START = NOTE_START + 1.0 // = end of the default pre-listen

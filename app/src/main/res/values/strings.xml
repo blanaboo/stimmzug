@@ -69,4 +69,28 @@
     <string name="wizard_triggers_hint">Trigger sind Züge, die du beim Spielen mit Daumen oder Finger verstellst. Mehrere möglich.</string>
     <string name="wizard_name_title">Wie soll das Profil heißen?</string>
     <string name="wizard_name_label">Name</string>
+
+    <!-- Settings (#68) -->
+    <string name="home_settings">Einstellungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_a4">Stimmton a′</string>
+    <string name="settings_a4_value">%1$d Hz</string>
+    <string name="settings_a4_hint">Blechbläser stimmen meist auf 442 Hz.</string>
+    <string name="settings_tolerance">Toleranz</string>
+    <string name="settings_tolerance_value">±%1$d ct</string>
+    <string name="settings_tolerance_hint">So weit darf dein Ton vom Ziel abweichen und gilt noch als sauber.</string>
+    <string name="settings_hold">Haltedauer</string>
+    <string name="settings_hold_value">%1$d s</string>
+    <string name="settings_hold_hint">So lange hältst du den Ton sauber, bis er zählt.</string>
+    <string name="settings_display">Anzeige beim Spielen</string>
+    <string name="display_ear">Ohr-Modus</string>
+    <string name="display_tuner">Stimmgerät</string>
+    <string name="display_ear_hint">Nur ein Ring, der sich füllt, solange du im Bereich bist. Ob zu hoch oder zu tief, sagt dir dein Ohr.</string>
+    <string name="display_tuner_hint">Zeigt die Abweichung in Cent mit Zeiger.</string>
+    <string name="settings_drone">Drone über</string>
+    <string name="drone_auto">Automatisch</string>
+    <string name="drone_speaker">Lautsprecher</string>
+    <string name="drone_auto_hint">Kopfhörer, wenn verbunden, sonst der Lautsprecher. Mit Kopfhörer klappt die Erkennung am besten: Geräuschunterdrückung aus, ein Ohrhörer reicht.</string>
+    <string name="drone_speaker_hint">Immer der Handy-Lautsprecher, auch wenn Kopfhörer verbunden sind.</string>
+    <string name="settings_reset">Standard wiederherstellen</string>
 </resources>

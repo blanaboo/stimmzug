@@ -4,8 +4,8 @@ package io.github.blanaboo.stimmzug.dsp.match
 data class MatchConfig(
     /** The smoothed deviation must stay within ±this many cents. */
     val toleranceCents: Double = 5.0,
-    /** How long the note must be held within the tolerance for a hit. */
-    val holdSec: Double = 3.0,
+    /** How long the note must be held within the tolerance for a hit (the owner prefers 5 s to 3 s, #68). */
+    val holdSec: Double = DEFAULT_HOLD_SEC,
     /** Dropouts and excursions out of the tolerance shorter than this do not reset the hold. */
     val graceSec: Double = 0.3,
     /** Frames with a lower clarity count as dropouts. */
@@ -32,6 +32,8 @@ data class MatchConfig(
     }
 
     companion object {
+        const val DEFAULT_HOLD_SEC = 5.0
+
         /** Deviations below this (half a semitone) still belong to the target note. */
         const val SAME_NOTE_CENTS = 50.0
     }

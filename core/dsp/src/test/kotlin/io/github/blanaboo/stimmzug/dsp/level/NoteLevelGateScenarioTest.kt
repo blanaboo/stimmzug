@@ -1,5 +1,6 @@
 package io.github.blanaboo.stimmzug.dsp.level
 
+import io.github.blanaboo.stimmzug.dsp.match.MatchConfig
 import io.github.blanaboo.stimmzug.dsp.match.MatchStateMachine
 import io.github.blanaboo.stimmzug.dsp.match.NoteResult
 import io.github.blanaboo.stimmzug.dsp.match.PitchVerdict
@@ -70,7 +71,7 @@ class NoteLevelGateScenarioTest {
         val calibration = LevelCalibration().apply {
             frames.filter { it.timeSec in 0.5..NOTE_START }.forEach { add(it.estimate.levelDb) }
         }.result()
-        val machine = MatchStateMachine().apply { start(target, NOTE_START) }
+        val machine = MatchStateMachine(MatchConfig(holdSec = HOLD_SEC)).apply { start(target, NOTE_START) }
         val passes: (PitchFrame) -> Boolean = if (perNote) {
             val gate = NoteLevelGate(calibration).apply { startNote(NOTE_START) }
             gate::passes
@@ -119,6 +120,8 @@ class NoteLevelGateScenarioTest {
     }
 
     private companion object {
+        /** These time lines were written for a 3 s hold; the default is 5 s (#68). */
+        const val HOLD_SEC = 3.0
         const val FS = 48_000
         const val NOTE_START = 2.0
         const val LISTEN_START = NOTE_START + 1.0

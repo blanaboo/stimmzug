@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.blanaboo.stimmzug.R
+import io.github.blanaboo.stimmzug.data.settings.PracticeSettings
 import io.github.blanaboo.stimmzug.ui.home.HomeActions
 import io.github.blanaboo.stimmzug.ui.home.HomeScreen
 import io.github.blanaboo.stimmzug.ui.profile.ProfileListActions
@@ -17,6 +18,9 @@ import io.github.blanaboo.stimmzug.ui.profile.ProfileListScreen
 import io.github.blanaboo.stimmzug.ui.profile.ProfileWizardScreen
 import io.github.blanaboo.stimmzug.ui.profile.ProfileWizardViewModel
 import io.github.blanaboo.stimmzug.ui.profile.ProfilesViewModel
+import io.github.blanaboo.stimmzug.ui.settings.SettingsActions
+import io.github.blanaboo.stimmzug.ui.settings.SettingsScreen
+import io.github.blanaboo.stimmzug.ui.settings.SettingsViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -24,6 +28,9 @@ data object HomeRoute
 
 @Serializable
 data object ProfilesRoute
+
+@Serializable
+data object SettingsRoute
 
 /** The profile setup; without [profileId] for a new profile. */
 @Serializable
@@ -37,11 +44,15 @@ fun StimmzugNavHost(versionName: String, modifier: Modifier = Modifier) {
             val profiles: ProfilesViewModel = viewModel()
             val state by profiles.state.collectAsStateWithLifecycle()
             val defaultName = stringResource(R.string.key_b_flat)
+            val practice: SettingsViewModel = viewModel()
+            val settings by practice.settings.collectAsStateWithLifecycle()
             HomeScreen(
                 versionName = versionName,
                 profiles = state,
+                a4Hz = settings?.a4Hz ?: PracticeSettings.DEFAULT_A4_HZ,
                 actions = HomeActions(
                     openProfiles = { nav.navigate(ProfilesRoute) },
+                    openSettings = { nav.navigate(SettingsRoute) },
                     createProfile = { nav.navigate(ProfileWizardRoute()) },
                     useDefault = { profiles.useDefault(defaultName) }
                 )
@@ -64,6 +75,16 @@ fun StimmzugNavHost(versionName: String, modifier: Modifier = Modifier) {
         composable<ProfileWizardRoute> {
             val wizard: ProfileWizardViewModel = viewModel()
             ProfileWizardScreen(wizard, onDone = { nav.popBackStack() })
+        }
+        composable<SettingsRoute> {
+            val practice: SettingsViewModel = viewModel()
+            val settings by practice.settings.collectAsStateWithLifecycle()
+            SettingsScreen(
+                settings = settings,
+                actions = SettingsActions(back = {
+                    nav.popBackStack()
+                }, update = practice::update, reset = practice::reset)
+            )
         }
     }
 }
