@@ -1,5 +1,6 @@
 package io.github.blanaboo.stimmzug.tools.replay
 
+import io.github.blanaboo.stimmzug.dsp.match.MatchConfig
 import io.github.blanaboo.stimmzug.dsp.match.PitchVerdict
 import io.github.blanaboo.stimmzug.dsp.music.NoteMath
 import io.github.blanaboo.stimmzug.tools.replay.TestAudio.FS
@@ -18,7 +19,11 @@ class ReplayTest {
     @Test
     fun `player in tune after calibration hits`() {
         val samples = TestAudio.scene(34, tubaHz = target)
-        val result = Replay.run(samples, FS.toDouble(), ReplayOptions(targetHz = target, calibrationSec = 1.5))
+        val result = Replay.run(
+            samples,
+            FS.toDouble(),
+            ReplayOptions(targetHz = target, calibrationSec = 1.5, match = HOLD_3S)
+        )
         val note = result.note!!
         assertTrue(note.hit, "$note")
         // Tuba from 2.0 s, machine from 1.5 s: 0.5 s waiting + onset + 3 s hold.
@@ -71,3 +76,6 @@ class ReplayTest {
         assertThrows<IllegalArgumentException> { Replay.run(short, FS.toDouble(), ReplayOptions(calibrationSec = 0.1)) }
     }
 }
+
+/** The scenes were written for a 3 s hold; the default is 5 s (#68). */
+private val HOLD_3S = MatchConfig(preListenSec = 0.0, holdSec = 3.0)

@@ -27,7 +27,7 @@ Standard für <out> ist <labor-sitzung>/auswertung. Zielton und Kalibrierung kom
   --calibrate <s>       Die ersten s Sekunden (niemand spielt) kalibrieren das Pegel-Gate.
                         Standard 0: kein Gate, jeder stimmhafte Frame zählt.
   --tolerance <ct>      Toleranz (Standard 5)
-  --hold <s>            Haltedauer (Standard 3)
+  --hold <s>            Haltedauer (Standard 5)
   --grace <s>           Gnadenzeit (Standard 0.3)
   --min-clarity <0..1>  Mindest-Klarheit (Standard 0.8)
   --median <n>          Median-Glättung über n Frames (Standard 5)

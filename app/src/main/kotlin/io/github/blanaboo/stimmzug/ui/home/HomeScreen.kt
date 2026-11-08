@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.blanaboo.stimmzug.R
 import io.github.blanaboo.stimmzug.data.profile.ProfileState
+import io.github.blanaboo.stimmzug.data.settings.PracticeSettings
 import io.github.blanaboo.stimmzug.dsp.music.InstrumentProfile
 import io.github.blanaboo.stimmzug.dsp.music.NoteMath
 import io.github.blanaboo.stimmzug.dsp.music.NoteNames
@@ -37,23 +38,30 @@ private const val KONTRA_B = 34
 
 const val TAG_REFERENCE_NOTE = "home_reference_note"
 const val TAG_HOME_PROFILES = "home_profiles"
+const val TAG_HOME_SETTINGS = "home_settings"
 
 /** What the start screen can do. */
 class HomeActions(
     val openProfiles: () -> Unit = {},
+    val openSettings: () -> Unit = {},
     val createProfile: () -> Unit = {},
     val useDefault: () -> Unit = {}
 )
 
-/** Start screen: the reference note and the active instrument (#40). [profiles] is `null` while loading. */
+/** Start screen: the reference note at [a4Hz] and the active instrument (#40). [profiles] is `null` while loading. */
 @Composable
 fun HomeScreen(
     versionName: String,
     modifier: Modifier = Modifier,
     profiles: ProfileState? = null,
+    a4Hz: Int = PracticeSettings.DEFAULT_A4_HZ,
     actions: HomeActions = HomeActions()
 ) {
-    val frequency = String.format(LocalLocale.current.platformLocale, "%.2f", NoteMath.frequency(KONTRA_B))
+    val frequency = String.format(
+        LocalLocale.current.platformLocale,
+        "%.2f",
+        NoteMath.frequency(KONTRA_B, a4Hz.toDouble())
+    )
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()).padding(24.dp),
@@ -80,6 +88,13 @@ fun HomeScreen(
             )
             Spacer(Modifier.height(32.dp))
             if (profiles != null) InstrumentCard(profiles.active, actions)
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = actions.openSettings,
+                modifier = Modifier.fillMaxWidth().testTag(TAG_HOME_SETTINGS)
+            ) {
+                Text(stringResource(R.string.home_settings))
+            }
             Spacer(Modifier.height(32.dp))
             Text(
                 text = stringResource(R.string.status_in_development, versionName),

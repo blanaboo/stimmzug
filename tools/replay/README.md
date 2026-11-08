@@ -20,7 +20,7 @@ Relative Pfade beziehen sich auf das Repository. Alle Optionen zeigt `--help`:
 | `--a4 <Hz>` | Kammerton a' | 440 |
 | `--calibrate <s>` | Die ersten s Sekunden (niemand spielt, ggf. läuft der Drone) kalibrieren das Pegel-Gate. Ohne: kein Gate. | 0 |
 | `--tolerance <ct>` | Toleranz | 5 |
-| `--hold <s>` | Haltedauer | 3 |
+| `--hold <s>` | Haltedauer | 5 |
 | `--grace <s>` | Gnadenzeit für Aussetzer und kurze Ausflüge | 0,3 |
 | `--min-clarity <0..1>` | Mindest-Klarheit | 0,8 |
 | `--median <n>` | Median-Glättung über n Frames (à 20 ms) | 5 |

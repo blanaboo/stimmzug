@@ -26,7 +26,8 @@ class MatchStateMachineTest {
     /** Feeds frames every [HOP] s for [seconds]; the note starts at t = 0, so listening starts at 1 s. */
     private fun run(
         seconds: Double = 8.0,
-        config: MatchConfig = MatchConfig(),
+        // The time lines below were written for a 3 s hold; the default (5 s) is checked in `validation`.
+        config: MatchConfig = MatchConfig(holdSec = 3.0),
         clarity: Double = 0.95,
         passedGate: Boolean = true,
         player: Player
@@ -72,7 +73,7 @@ class MatchStateMachineTest {
             val expected = if (cents > 0) PitchVerdict.SHARP else PitchVerdict.FLAT
             assertEquals(expected, r.statuses.last().verdict)
         }
-        assertTrue(run(config = MatchConfig(toleranceCents = 10.0)) { 9.0 }.result.hit)
+        assertTrue(run(config = MatchConfig(toleranceCents = 10.0, holdSec = 3.0)) { 9.0 }.result.hit)
     }
 
     @Test
@@ -208,6 +209,7 @@ class MatchStateMachineTest {
 
     @Test
     fun `validation`() {
+        assertEquals(5.0, MatchConfig().holdSec, "owner's default hold time (#68)")
         val machine = MatchStateMachine()
         assertThrows<IllegalStateException> { machine.result() }
         assertThrows<IllegalStateException> { machine.onFrame(PitchFrame(0.0, PitchEstimate.unvoiced(-60.0)), true) }

@@ -2,7 +2,7 @@
 
 ## Idee
 
-Intonation mit dem Ohr üben: Die App spielt einen exakt gestimmten Referenzton (Drone). Der Tubist passt seinen Ton an, bis keine Schwebung mehr zu hören ist. Die App hört über das Mikrofon mit und bestätigt akustisch und visuell, sobald der Ton **eine einstellbare Zeit (Standard 3 s) innerhalb einer einstellbaren Toleranz (Standard ±5 Cent)** liegt. Danach folgt automatisch der nächste Ton.
+Intonation mit dem Ohr üben: Die App spielt einen exakt gestimmten Referenzton (Drone). Der Tubist passt seinen Ton an, bis keine Schwebung mehr zu hören ist. Die App hört über das Mikrofon mit und bestätigt akustisch und visuell, sobald der Ton **eine einstellbare Zeit (Standard 5 s) innerhalb einer einstellbaren Toleranz (Standard ±5 Cent)** liegt. Danach folgt automatisch der nächste Ton.
 
 ## Übungsablauf (freihändig – das Handy steht auf dem Notenständer)
 

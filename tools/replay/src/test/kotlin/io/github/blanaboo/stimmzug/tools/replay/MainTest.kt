@@ -43,7 +43,7 @@ class MainTest {
     fun `replays a recording with target and gate into CSV, PNG and a German summary`() {
         val wav = recording("kontra-b.wav", 34)
         val outDir = File(dir, "out")
-        val r = cli(wav.path, "--target", "Kontra-B", "--calibrate", "1,5", "--out", outDir.path)
+        val r = cli(wav.path, "--target", "Kontra-B", "--calibrate", "1,5", "--hold", "3", "--out", outDir.path)
         assertEquals(0, r.code, r.err)
         assertTrue(r.out.contains("Ziel: Kontra-B (58,27 Hz)"), r.out)
         assertTrue(r.out.contains("Ergebnis: Treffer nach"), r.out)
