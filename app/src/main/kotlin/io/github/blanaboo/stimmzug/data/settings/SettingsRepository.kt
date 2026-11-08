@@ -34,7 +34,8 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
             toleranceCents = prefs[TOLERANCE].within(PracticeSettings.TOLERANCE_RANGE, defaults.toleranceCents),
             holdSec = prefs[HOLD].within(PracticeSettings.HOLD_RANGE, defaults.holdSec),
             display = enumOr(prefs[DISPLAY], defaults.display),
-            droneOutput = enumOr(prefs[DRONE_OUTPUT], defaults.droneOutput)
+            droneOutput = enumOr(prefs[DRONE_OUTPUT], defaults.droneOutput),
+            droneTimbre = enumOr(prefs[DRONE_TIMBRE], defaults.droneTimbre)
         )
     }
 
@@ -44,6 +45,7 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
         prefs[HOLD] = settings.holdSec
         prefs[DISPLAY] = settings.display.name
         prefs[DRONE_OUTPUT] = settings.droneOutput.name
+        prefs[DRONE_TIMBRE] = settings.droneTimbre.name
     }
 
     private fun Int?.within(range: IntRange, default: Int): Int = this?.takeIf { it in range } ?: default
@@ -57,5 +59,6 @@ class SettingsRepository(private val store: DataStore<Preferences>) {
         val HOLD = intPreferencesKey("hold_sec")
         val DISPLAY = stringPreferencesKey("display")
         val DRONE_OUTPUT = stringPreferencesKey("drone_output")
+        val DRONE_TIMBRE = stringPreferencesKey("drone_timbre")
     }
 }

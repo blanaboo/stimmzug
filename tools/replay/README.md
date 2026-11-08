@@ -47,6 +47,25 @@ Neben der Aufnahme (oder in `--out`) entstehen drei Dateien:
   - `verdict`, `phase`, `hold_progress`: Entscheidung der Treffer-Logik
 - **`<name>.txt`**: Zusammenfassung, wie sie auch auf der Konsole erscheint. Sie enthält Treffer und Zeit bis zum Treffer, die Einstiegsabweichung, Mittel und Streuung beim Halten sowie die Zeit auf falscher Oktave bzw. falschem Ton.
 
+## Obertöne messen
+
+Mit `--spectrum` sucht das Werkzeug die gehaltenen Töne einer Aufnahme und misst je Ton die Stärke der Teiltöne. Daraus
+entsteht der Klang des Drones ([docs/drone-klang.md](../../docs/drone-klang.md), [ADR 0006](../../docs/adr/0006-drone-klang.md)):
+
+```sh
+./gradlew :tools:replay:run --args="--spectrum testdata/local/drones/gr55.wav --a4 442 --name 'B&S GR55' --kotlin core/dsp/src/main/kotlin/io/github/blanaboo/stimmzug/dsp/synth/Gr55Spectrum.kt"
+```
+
+- **`<name>-obertoene.csv`**: jeder gefundene Ton mit Zeit, Ton, f0, Abweichung, Streuung und Pegel, dazu die
+  Teiltöne 1–16 relativ zum stärksten und ihr Abstand zum Raumrauschen.
+- **`<name>-obertoene.md`**: die Tabelle je Ton, für `docs/`.
+- **`--kotlin <datei.kt>`**: die Klangtabelle für `core/dsp`. Der Objektname ist der Dateiname, `--name` das
+  Instrument.
+
+Unter Windows schneidet `gradlew.bat` Argumente mit `&` ab. Dann das installierte Werkzeug direkt aufrufen:
+`./gradlew :tools:replay:installDist`, danach
+`java -cp "tools/replay/build/install/replay/lib/*" io.github.blanaboo.stimmzug.tools.replay.MainKt --spectrum …`.
+
 ## Sitzungen des Audio-Labors
 
 Statt einer Datei lässt sich ein ganzer Sitzungsordner des Audio-Labors (Debug-App, #33) auswerten:

@@ -40,6 +40,7 @@ import io.github.blanaboo.stimmzug.R
 import io.github.blanaboo.stimmzug.data.settings.DisplayMode
 import io.github.blanaboo.stimmzug.data.settings.DroneOutput
 import io.github.blanaboo.stimmzug.data.settings.PracticeSettings
+import io.github.blanaboo.stimmzug.dsp.synth.DroneTimbre
 import io.github.blanaboo.stimmzug.ui.theme.StimmzugTheme
 import kotlin.math.roundToInt
 
@@ -97,6 +98,10 @@ private val DRONE_OPTIONS = listOf(
     ChoiceOption(DroneOutput.AUTO, R.string.drone_auto, R.string.drone_auto_hint),
     ChoiceOption(DroneOutput.SPEAKER, R.string.drone_speaker, R.string.drone_speaker_hint)
 )
+private val TIMBRE_OPTIONS = listOf(
+    ChoiceOption(DroneTimbre.RECORDED, R.string.timbre_recorded, R.string.timbre_recorded_hint),
+    ChoiceOption(DroneTimbre.SYNTHETIC, R.string.timbre_synthetic, R.string.timbre_synthetic_hint)
+)
 
 /** Practice settings (#68). [settings] is `null` while loading. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,6 +139,9 @@ private fun SettingsContent(settings: PracticeSettings, actions: SettingsActions
         }
         ChoiceSetting(R.string.settings_drone, DRONE_OPTIONS, settings.droneOutput) { output ->
             actions.update { it.copy(droneOutput = output) }
+        }
+        ChoiceSetting(R.string.settings_timbre, TIMBRE_OPTIONS, settings.droneTimbre) { timbre ->
+            actions.update { it.copy(droneTimbre = timbre) }
         }
         HorizontalDivider()
         OutlinedButton(onClick = actions.reset, modifier = Modifier.fillMaxWidth().testTag(TAG_SETTINGS_RESET)) {

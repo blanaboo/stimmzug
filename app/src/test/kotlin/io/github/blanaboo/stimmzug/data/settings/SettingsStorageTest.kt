@@ -4,6 +4,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.blanaboo.stimmzug.data.MemoryStore
+import io.github.blanaboo.stimmzug.dsp.synth.DroneTimbre
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -20,6 +21,7 @@ class SettingsStorageTest {
         assertEquals(5, defaults.holdSec)
         assertEquals(DisplayMode.EAR, defaults.display)
         assertEquals(DroneOutput.AUTO, defaults.droneOutput)
+        assertEquals(DroneTimbre.RECORDED, defaults.droneTimbre)
     }
 
     @Test
@@ -43,9 +45,17 @@ class SettingsStorageTest {
         assertEquals(PracticeSettings(), repository.settings.first())
 
         repository.update { it.copy(holdSec = 7, display = DisplayMode.TUNER) }
-        repository.update { it.copy(a4Hz = 440, droneOutput = DroneOutput.SPEAKER) }
+        repository.update {
+            it.copy(a4Hz = 440, droneOutput = DroneOutput.SPEAKER, droneTimbre = DroneTimbre.SYNTHETIC)
+        }
         assertEquals(
-            PracticeSettings(a4Hz = 440, holdSec = 7, display = DisplayMode.TUNER, droneOutput = DroneOutput.SPEAKER),
+            PracticeSettings(
+                a4Hz = 440,
+                holdSec = 7,
+                display = DisplayMode.TUNER,
+                droneOutput = DroneOutput.SPEAKER,
+                droneTimbre = DroneTimbre.SYNTHETIC
+            ),
             repository.settings.first()
         )
 
@@ -60,7 +70,8 @@ class SettingsStorageTest {
             intPreferencesKey("tolerance_cents") to 9,
             intPreferencesKey("hold_sec") to 0,
             stringPreferencesKey("display") to "HOLOGRAM",
-            stringPreferencesKey("drone_output") to "SPEAKER"
+            stringPreferencesKey("drone_output") to "SPEAKER",
+            stringPreferencesKey("drone_timbre") to "KAZOO"
         )
         val settings = SettingsRepository(MemoryStore(stored)).settings.first()
         assertEquals(PracticeSettings(toleranceCents = 9, droneOutput = DroneOutput.SPEAKER), settings)

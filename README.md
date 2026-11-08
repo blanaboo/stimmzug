@@ -8,7 +8,7 @@
 
 ## Funktionen (geplant)
 
-- Drone mit synthetischem Tuba-Klang: exakt gestimmt, endlos haltbar, Stimmton a' einstellbar (430–450 Hz, Standard 442 Hz wie bei Blechbläsern üblich), über Kopfhörer (empfohlen, auch Bluetooth) oder den Handy-Lautsprecher
+- Drone mit dem Klang einer echten B-Tuba (gemessene Obertöne, [docs/drone-klang.md](docs/drone-klang.md)): exakt gestimmt, endlos haltbar, Stimmton a' einstellbar (430–450 Hz, Standard 442 Hz wie bei Blechbläsern üblich), über Kopfhörer (empfohlen, auch Bluetooth) oder den Handy-Lautsprecher
 - Tonerkennung speziell für tiefe Töne (bis ca. 25 Hz, inkl. Pedaltöne): MPM-Verfahren, zielgeführte Suche, Oktavprüfung
 - Treffer, wenn der Ton eine einstellbare Zeit (Standard 5 s) innerhalb einer einstellbaren Toleranz (Standard ±5 Cent) liegt
 - **Ohr-Modus** (Fortschritt ohne Richtungsanzeige), optional Live-Stimmgerät und Verlaufskurve
