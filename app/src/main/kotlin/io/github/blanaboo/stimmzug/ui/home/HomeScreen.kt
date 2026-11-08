@@ -39,11 +39,13 @@ private const val KONTRA_B = 34
 const val TAG_REFERENCE_NOTE = "home_reference_note"
 const val TAG_HOME_PROFILES = "home_profiles"
 const val TAG_HOME_SETTINGS = "home_settings"
+const val TAG_HOME_PRACTICE = "home_practice"
 
 /** What the start screen can do. */
 class HomeActions(
     val openProfiles: () -> Unit = {},
     val openSettings: () -> Unit = {},
+    val practice: () -> Unit = {},
     val createProfile: () -> Unit = {},
     val useDefault: () -> Unit = {}
 )
@@ -87,6 +89,13 @@ fun HomeScreen(
                 modifier = Modifier.testTag(TAG_REFERENCE_NOTE)
             )
             Spacer(Modifier.height(32.dp))
+            Button(
+                onClick = actions.practice,
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag(TAG_HOME_PRACTICE)
+            ) {
+                Text(stringResource(R.string.home_practice), style = MaterialTheme.typography.titleMedium)
+            }
+            Spacer(Modifier.height(16.dp))
             if (profiles != null) InstrumentCard(profiles.active, actions)
             Spacer(Modifier.height(12.dp))
             OutlinedButton(
