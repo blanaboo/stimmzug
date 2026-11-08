@@ -52,7 +52,28 @@ sealed interface Exercise {
         val direction: Direction = Direction.UP
     ) : Exercise
 
-    /** [count] random notes from [lowMidi]..[highMidi] (only those in [key], if given), never twice in a row. */
-    data class Random(val lowMidi: Int, val highMidi: Int, val count: Int, val seed: Long, val key: Key? = null) :
-        Exercise
+    /**
+     * [count] random notes from [lowMidi]..[highMidi] (only those in [key], if given), never twice in a row.
+     * With [repeat] = `false` every note comes at most once; [count] = the pool size plays each note once in random
+     * order, see [eachOnce].
+     */
+    data class Random(
+        val lowMidi: Int,
+        val highMidi: Int,
+        val count: Int,
+        val seed: Long,
+        val key: Key? = null,
+        val repeat: Boolean = true
+    ) : Exercise {
+        /** The notes to draw from. */
+        val pool: List<Int> get() = (lowMidi..highMidi).filter { key == null || it in key }
+
+        companion object {
+            /** Every note of [key] in [lowMidi]..[highMidi] once, in random order (e.g. B♭ major, Kontra-F to f). */
+            fun eachOnce(lowMidi: Int, highMidi: Int, key: Key?, seed: Long): Random {
+                val count = Random(lowMidi, highMidi, 1, seed, key).pool.size
+                return Random(lowMidi, highMidi, count, seed, key, repeat = false)
+            }
+        }
+    }
 }

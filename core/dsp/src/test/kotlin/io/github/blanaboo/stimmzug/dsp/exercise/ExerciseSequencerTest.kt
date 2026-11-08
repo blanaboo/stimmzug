@@ -108,6 +108,26 @@ class ExerciseSequencerTest {
     }
 
     @Test
+    fun `each note of B flat major from Kontra-F to f once, in random order`() {
+        val bFlatMajor = Key(tonicPitchClass = 10, type = ScaleType.MAJOR)
+        val exercise = Exercise.Random.eachOnce(lowMidi = 29, highMidi = 53, key = bFlatMajor, seed = 7)
+        val played = notes(exercise)
+        assertEquals(
+            "Kontra-F Kontra-G Kontra-A Kontra-B großes C großes D großes Es großes F großes G großes A großes B " +
+                "kleines c kleines d kleines es kleines f",
+            names(played.sorted())
+        )
+        assertEquals(15, played.size)
+        assertNotEquals(played.sorted(), played, "shuffled")
+        assertEquals(played, notes(exercise), "reproducible from the seed")
+        assertNotEquals(played, notes(exercise.copy(seed = 8)))
+
+        val part = notes(exercise.copy(count = 5))
+        assertEquals(5, part.toSet().size, "no repetition: $part")
+        assertThrows<IllegalArgumentException> { notes(exercise.copy(count = 16)) }
+    }
+
+    @Test
     fun `random edge cases`() {
         assertEquals(listOf(40), notes(Exercise.Random(40, 40, count = 1, seed = 1)))
         assertThrows<IllegalArgumentException> { notes(Exercise.Random(40, 40, count = 2, seed = 1)) }

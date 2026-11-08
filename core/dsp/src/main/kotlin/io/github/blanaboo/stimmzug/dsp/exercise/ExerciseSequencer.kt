@@ -75,10 +75,14 @@ class ExerciseSequencer(val exercise: Exercise, val instrument: Instrument) {
             require(e.lowMidi in instrument.range && e.highMidi in instrument.range) {
                 "range ${e.lowMidi}..${e.highMidi} is outside the range ${instrument.range} of $instrument"
             }
-            val pool = (e.lowMidi..e.highMidi).filter { e.key == null || it in e.key }
+            val pool = e.pool
             require(pool.isNotEmpty()) { "no notes of ${e.key} in ${e.lowMidi}..${e.highMidi}" }
             require(pool.size >= 2 || e.count == 1) { "need at least two notes to avoid repetitions, got $pool" }
             val random = Random(e.seed)
+            if (!e.repeat) {
+                require(e.count <= pool.size) { "${e.count} notes without repetition, but only ${pool.size} in $pool" }
+                return pool.shuffled(random).take(e.count)
+            }
             val notes = ArrayList<Int>(e.count)
             repeat(e.count) {
                 val previous = notes.lastOrNull()

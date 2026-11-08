@@ -24,7 +24,8 @@ Machine-specific paths (JDK, SDK, AVD, adb) are in `CLAUDE.local.md` (not commit
 ## Architecture
 
 - `core/dsp` – pure Kotlin/JVM, **no Android dependencies**. Pitch detection (MPM, YIN for comparison), FFT,
-  level gate, note math, drone synthesis, match state machine, exercise sequencer. Time base = audio sample time.
+  level gate, note math, drone synthesis, match state machine, exercise sequencer, practice session (calibration
+  → notes → summary, drives the drone). Time base = audio sample time.
   Keep new core code free of JVM-only APIs where practical: it is meant to become a Kotlin Multiplatform module
   for the iPhone app (M7, #49).
 - `app` – Compose UI, ViewModels, audio adapters (`AudioRecord`, `AudioTrack`), settings, session logging,
