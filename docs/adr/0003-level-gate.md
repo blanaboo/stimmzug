@@ -50,3 +50,23 @@ im selben Bereich.
   und mit der Audioquelle `UNPROCESSED` liefert das System sie nicht mit. Sie kommt erst infrage, wenn der
   Praxistest (M4) sie nötig macht.
 - Alle Werte stammen aus synthetischen Signalen und werden im Praxistest (M4) überprüft.
+
+## Nachtrag: Schwelle pro Ton (#24, 2026-11-08)
+
+Die Folge „Drone wird lauter“ ist mit `NoteLevelGate` gelöst. Der Tiefpass vor der Erkennung
+([ADR 0005](0005-audio-io.md)) macht das nötig, denn mit ihm hängt der gemessene Drone-Pegel vom Zielton ab.
+
+- **Messen:**
+  - Ab 0,4 s nach Beginn des Tons zählen die Frames. Davor liegen das Einblenden des Drones und das
+    Analysefenster.
+  - Je 0,2 s ergibt der Median der Pegel einen Wert. Der leiseste Wert bisher gilt als Drone-Pegel dieses Tons.
+- **Anheben:** Die Schwelle steigt um den Abstand dieses Pegels zum Kalibrierpegel, höchstens um 10 dB. Sie sinkt
+  nie unter die Schwelle der Sitzung.
+- **Spieler setzt zu früh ein:**
+  - Setzt er im Vorhören ein, bleiben die Abschnitte davor beim Drone-Pegel.
+  - Spielt er schon beim Start des Tons, zeigt sein erster Atemzug den Drone-Pegel, und die Schwelle sinkt wieder.
+  - Schlimmstenfalls, wenn ein leiser Abschnitt kein Drone war, gilt einfach die Schwelle der Sitzung wie bisher.
+- **Szenario-Tests** (`NoteLevelGateScenarioTest`) für die Töne MIDI 34, 41, 53 und 65:
+  - Ein Drone 6 dB über der Kalibrierung führt nicht zum Treffer. Mit der Schwelle der Sitzung allein wäre es einer.
+  - Ein Spieler, der 0,3 s vor dem Hören einsetzt, trifft wie gewohnt.
+  - Ein Spieler, der schon beim Start spielt, trifft nach dem ersten Atemzug.
