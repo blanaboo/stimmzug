@@ -19,6 +19,7 @@ import io.github.blanaboo.stimmzug.practice.EngineState
 import io.github.blanaboo.stimmzug.practice.ExerciseChoice
 import io.github.blanaboo.stimmzug.practice.PracticeEngine
 import io.github.blanaboo.stimmzug.practice.PracticeInputs
+import io.github.blanaboo.stimmzug.practice.TapInfo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -80,9 +81,12 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
         closeEngine()
         val app = getApplication<Application>()
         val drone = DroneTrack(app, preferSpeaker = settings.droneOutput == DroneOutput.SPEAKER)
+        val config = settings.toSessionConfig()
         lateinit var engine: PracticeEngine
-        val input = PracticeInputs.override?.invoke { engine.state.value.snapshot } ?: MicInput(app)
-        val session = PracticeSession(chosen, input.sampleRate.toDouble(), drone, settings.toSessionConfig())
+        val source = PracticeInputs.override?.invoke { engine.state.value.snapshot } ?: MicInput(app)
+        val input = PracticeInputs.tap?.wrap(source, TapInfo(chosen, config, choice.toString())) { engine.state.value }
+            ?: source
+        val session = PracticeSession(chosen, input.sampleRate.toDouble(), drone, config)
         engine = PracticeEngine(session, input, route = { drone.route }, onClose = drone::close)
         running = engine
         notes = chosen

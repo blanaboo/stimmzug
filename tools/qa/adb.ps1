@@ -11,6 +11,7 @@
 #   Get-QaLogcat -Lines 200; Get-QaCrashLog
 #   Get-QaDeviceInfo                     # model, Android version, audio capabilities (docs/devices.md)
 #   Start-QaLab selbsttest; Get-QaLabSessions -Latest   # audio lab (debug build), see docs/field-test/audio-spike.md
+#   Get-QaPracticeRecordings -Latest     # practice recordings of the debug build (#75), see docs/field-test/uebungs-mitschnitt.md
 #
 # Binary output (screenshots, UI dumps) is written on the device and pulled, because PowerShell 5.1
 # corrupts binary data piped from native commands.
@@ -250,6 +251,22 @@ function Get-QaLabSessions {
     foreach ($session in $sessions) {
         Invoke-QaAdb pull "$remote/$session" $Destination | Out-Null
         Get-Item (Join-Path $Destination $session)
+    }
+}
+
+function Get-QaPracticeRecordings {
+    <#
+    Pulls the debug build's practice recordings (#75: input.wav, timeline.csv, session.txt per session) into
+    testdata\local\practice (git-ignored) and returns the local folders. -Latest pulls only the newest one.
+    #>
+    param([switch] $Latest, [string] $Destination = 'testdata\local\practice')
+    $remote = "/sdcard/Android/data/$script:QaPackage/files/practice"
+    $recordings = @(Invoke-QaAdb shell ls $remote | Where-Object { $_ -match '^\d{8}-\d{6}(-\d+)?$' } | Sort-Object)
+    if ($Latest) { $recordings = @($recordings | Select-Object -Last 1) }
+    New-Item -ItemType Directory -Force $Destination | Out-Null
+    foreach ($recording in $recordings) {
+        Invoke-QaAdb pull "$remote/$recording" $Destination | Out-Null
+        Get-Item (Join-Path $Destination $recording)
     }
 }
 

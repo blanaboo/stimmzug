@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -232,7 +233,7 @@ private fun EarView(midi: Int, status: MatchStatus, holdSec: Int) {
         PitchVerdict.IN_TOLERANCE -> stringResource(R.string.practice_hold) to
             stringResource(R.string.practice_seconds_left, seconds(holdSec * (1 - status.holdProgress)))
 
-        PitchVerdict.WRONG_OCTAVE -> stringResource(R.string.practice_wrong_octave) to ""
+        PitchVerdict.WRONG_OCTAVE -> wrongOctaveText(status.centsDeviation) to ""
 
         PitchVerdict.WRONG_NOTE -> stringResource(R.string.practice_wrong_note) to ""
 
@@ -258,7 +259,7 @@ private fun TunerView(midi: Int, status: MatchStatus, state: RunningState) {
         PitchVerdict.IN_TOLERANCE -> stringResource(R.string.practice_in_range)
         PitchVerdict.FLAT -> stringResource(R.string.practice_flat)
         PitchVerdict.SHARP -> stringResource(R.string.practice_sharp)
-        PitchVerdict.WRONG_OCTAVE -> stringResource(R.string.practice_wrong_octave)
+        PitchVerdict.WRONG_OCTAVE -> wrongOctaveText(status.centsDeviation)
         PitchVerdict.WRONG_NOTE -> stringResource(R.string.practice_wrong_note)
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -459,9 +460,24 @@ internal fun centsText(cents: Double): String {
     return "$sign${abs(rounded)} ct"
 }
 
+/** Whole octaves between the heard note and the target: +1 = an octave too high. */
+internal fun octavesOff(cents: Double): Int = (cents / CENTS_PER_OCTAVE).roundToInt()
+
+/** "Eine Oktave zu hoch", "2 Oktaven zu tief"; without a reading just "Falsche Oktave". */
+@Composable
+private fun wrongOctaveText(cents: Double?): String {
+    val octaves = cents?.let(::octavesOff) ?: 0
+    return when {
+        octaves > 0 -> pluralStringResource(R.plurals.practice_octaves_high, octaves, octaves)
+        octaves < 0 -> pluralStringResource(R.plurals.practice_octaves_low, -octaves, -octaves)
+        else -> stringResource(R.string.practice_wrong_octave)
+    }
+}
+
 @Composable
 internal fun seconds(value: Double): String = String.format(LocalLocale.current.platformLocale, "%.1f", value)
 
 private const val RANGE_CENTS = 50.0
+private const val CENTS_PER_OCTAVE = 1200.0
 private const val FULL_CIRCLE = 360f
 private const val QUARTER_CIRCLE = 90f

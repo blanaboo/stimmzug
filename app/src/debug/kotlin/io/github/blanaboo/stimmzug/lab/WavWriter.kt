@@ -35,6 +35,14 @@ class WavWriter(file: File, private val sampleRate: Int) : Closeable {
         samples += count
     }
 
+    /** Writes the header for the samples so far, so the file stays readable if [close] never comes. */
+    fun sync() {
+        val end = out.filePointer
+        out.seek(0)
+        out.write(header(sampleRate, samples * BYTES_PER_SAMPLE))
+        out.seek(end)
+    }
+
     override fun close() {
         out.use {
             it.seek(0)
