@@ -11,6 +11,7 @@ import io.github.blanaboo.stimmzug.dsp.session.DroneControl
 import io.github.blanaboo.stimmzug.dsp.session.NoteStatus
 import io.github.blanaboo.stimmzug.dsp.session.PracticeSession
 import io.github.blanaboo.stimmzug.dsp.session.SessionPhase
+import io.github.blanaboo.stimmzug.ui.practice.octavesOff
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
@@ -127,6 +128,15 @@ class PracticeLogicTest {
 
         engine.close()
         assertTrue(input.closed && closed)
+    }
+
+    @Test
+    fun wrongOctaveTellsTheDirection() {
+        assertEquals(1, octavesOff(1203.0))
+        assertEquals(-1, octavesOff(-1188.0))
+        assertEquals(2, octavesOff(2390.0))
+        assertEquals(-2, octavesOff(-2410.0))
+        assertEquals(0, octavesOff(-40.0))
     }
 
     @Test

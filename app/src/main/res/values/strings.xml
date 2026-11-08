@@ -130,6 +130,14 @@
     <string name="practice_hold">Halten …</string>
     <string name="practice_seconds_left">noch %1$s s</string>
     <string name="practice_wrong_octave">Falsche Oktave</string>
+    <plurals name="practice_octaves_high">
+        <item quantity="one">Eine Oktave zu hoch</item>
+        <item quantity="other">%1$d Oktaven zu hoch</item>
+    </plurals>
+    <plurals name="practice_octaves_low">
+        <item quantity="one">Eine Oktave zu tief</item>
+        <item quantity="other">%1$d Oktaven zu tief</item>
+    </plurals>
     <string name="practice_wrong_note">Anderer Ton</string>
     <string name="practice_flat">zu tief</string>
     <string name="practice_sharp">zu hoch</string>

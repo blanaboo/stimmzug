@@ -18,6 +18,8 @@ import io.github.blanaboo.stimmzug.data.settings.SettingsRepository
 import io.github.blanaboo.stimmzug.dsp.music.NoteNames
 import io.github.blanaboo.stimmzug.practice.ExerciseKind
 import io.github.blanaboo.stimmzug.practice.PracticeInputs
+import io.github.blanaboo.stimmzug.practice.PracticeRecorder
+import io.github.blanaboo.stimmzug.practice.RecordingInput
 import io.github.blanaboo.stimmzug.practice.VirtualTubistInput
 import io.github.blanaboo.stimmzug.ui.home.TAG_HOME_PRACTICE
 import io.github.blanaboo.stimmzug.ui.practice.TAG_PRACTICE_HIGH
@@ -31,6 +33,7 @@ import java.io.FileOutputStream
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -82,6 +85,21 @@ class PracticeFlowTest {
         compose.waitUntil(EXERCISE_TIMEOUT_MS) { exists(TAG_SUMMARY_TITLE) }
         compose.onNodeWithTag(TAG_SUMMARY_TITLE).assertTextEquals("2 von 2 sauber")
         screenshot("7-zusammenfassung")
+        assertRecorded()
+    }
+
+    /** Debug builds record every session (#75). */
+    private fun assertRecorded() {
+        val recorder = PracticeInputs.tap as PracticeRecorder
+        fun session() = recorder.recordings().lastOrNull()?.let { File(it, RecordingInput.SESSION_FILE) }
+        // The view model closes the input right after the summary appears; the recording is complete after that.
+        compose.waitUntil(TIMEOUT_MS) { session()?.takeIf { it.exists() }?.readText()?.contains("Ende:") == true }
+        val folder = checkNotNull(recorder.recordings().lastOrNull())
+        val text = File(folder, RecordingInput.SESSION_FILE).readText()
+        assertTrue(text, text.contains("Eingang: VIRTUAL_TUBIST") && text.contains("Ergebnis: 2 von 2 sauber"))
+        assertTrue(File(folder, RecordingInput.TIMELINE_FILE).readLines().any { it.contains(",HIT,") })
+        val audioSec = (File(folder, RecordingInput.AUDIO_FILE).length() - WAV_HEADER) / (2.0 * SAMPLE_RATE)
+        assertTrue("$audioSec s of audio", audioSec > MIN_AUDIO_SEC)
     }
 
     /** Screenshots for looking at the screens, only with the runner argument `screenshots=true`. */
@@ -144,5 +162,10 @@ class PracticeFlowTest {
         const val PNG_QUALITY = 100
         const val MILLIS_PER_SECOND = 1000
         const val DRAW_MS = 300L
+        const val WAV_HEADER = 44
+        const val SAMPLE_RATE = 48_000
+
+        /** Calibration 3 s plus two notes of at least 5 s each. */
+        const val MIN_AUDIO_SEC = 10.0
     }
 }

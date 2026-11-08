@@ -29,7 +29,7 @@ Machine-specific paths (JDK, SDK, AVD, adb) are in `CLAUDE.local.md` (not commit
   Keep new core code free of JVM-only APIs where practical: it is meant to become a Kotlin Multiplatform module
   for the iPhone app (M7, #49).
 - `app` – Compose UI, ViewModels, audio adapters (`AudioRecord`, `AudioTrack`), settings, session logging,
-  debug-only "virtual tubist" audio input for E2E tests.
+  debug-only "virtual tubist" audio input for E2E tests and practice recordings for field-test findings (#75).
 - `tools/` – replay CLI (WAV → detector → CSV/PNG), QA helpers.
 - Decisions are recorded as ADRs in `docs/adr/`.
 

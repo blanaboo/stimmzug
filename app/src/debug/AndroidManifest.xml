@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <!-- Debug hooks at process start: records every practice session (#75). -->
+        <provider
+            android:name="io.github.blanaboo.stimmzug.debug.DebugSetup"
+            android:authorities="${applicationId}.debugsetup"
+            android:exported="false" />
+
         <!-- Own task, so the lab and the app can be switched between in the recents list. -->
         <activity
             android:name="io.github.blanaboo.stimmzug.lab.AudioLabActivity"
