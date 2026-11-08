@@ -2,6 +2,7 @@ package io.github.blanaboo.stimmzug.data.settings
 
 import io.github.blanaboo.stimmzug.dsp.match.MatchConfig
 import io.github.blanaboo.stimmzug.dsp.session.SessionConfig
+import io.github.blanaboo.stimmzug.dsp.synth.DroneTimbre
 
 /** What the practice screen shows while the player plays. */
 enum class DisplayMode {
@@ -27,7 +28,9 @@ data class PracticeSettings(
     val toleranceCents: Int = DEFAULT_TOLERANCE_CENTS,
     val holdSec: Int = DEFAULT_HOLD_SEC,
     val display: DisplayMode = DisplayMode.EAR,
-    val droneOutput: DroneOutput = DroneOutput.AUTO
+    val droneOutput: DroneOutput = DroneOutput.AUTO,
+    /** The owner's recorded B♭ tuba by default (#72); the synthetic model stays for comparison. */
+    val droneTimbre: DroneTimbre = DroneTimbre.RECORDED
 ) {
     init {
         require(a4Hz in A4_RANGE) { "a4 must be in $A4_RANGE, was $a4Hz" }

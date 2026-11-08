@@ -17,6 +17,8 @@ data class DroneConfig(
     val crossfadeSec: Double = 0.2,
     /** Volume changes ramp over this time (from 0 to 1), so they do not crackle. */
     val volumeRampSec: Double = 0.05,
+    val timbre: DroneTimbre = DroneTimbre.RECORDED,
+    /** Only for [DroneTimbre.SYNTHETIC]: the recorded timbre is mezzoforte. */
     val dynamic: TubaSpectrum.Dynamic = TubaSpectrum.Dynamic.MEZZO
 ) {
     init {
@@ -24,9 +26,18 @@ data class DroneConfig(
     }
 }
 
+/** Where the drone's harmonic levels come from. */
+enum class DroneTimbre {
+    /** Measured from the owner's B♭ tuba, note by note (#72, [Gr55Spectrum]). */
+    RECORDED,
+
+    /** The simple model [TubaSpectrum]: smooth, the same shape for every note. */
+    SYNTHETIC
+}
+
 /**
- * The reference tone: additive wavetable synthesis with a tuba-like spectrum and a double-precision phase
- * accumulator per voice, so the pitch is exact (the wavetable only shapes the timbre).
+ * The reference tone: additive wavetable synthesis with a tuba spectrum ([DroneConfig.timbre]) and a double-precision
+ * phase accumulator per voice, so the pitch is exact (the wavetable only shapes the timbre).
  *
  * Control methods ([play], [stop], [setVolume], [setOctaveOffset], [playConfirmation]) may be called from any
  * thread; they queue commands (wavetables are built on the calling thread) that [render] applies at the start of
@@ -106,7 +117,7 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
     private fun queueNote(frequencyHz: Double) {
         val sounding = frequencyHz * 2.0.pow(octaveOffset)
         require(sounding < MAX_FREQUENCY_FRACTION * sampleRate) { "drone frequency $sounding Hz too high" }
-        commands += Command.Play(sounding, droneWavetable(sounding, sampleRate, config.dynamic))
+        commands += Command.Play(sounding, droneWavetable(sounding, sampleRate, config))
     }
 
     /** Renders [length] samples into out[offset, offset + length). */
@@ -197,8 +208,8 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
          *   with many strong harmonics,
          * - zero phases win when the fundamental dominates (higher notes).
          */
-        fun droneWavetable(frequencyHz: Double, sampleRate: Double, dynamic: TubaSpectrum.Dynamic): Wavetable {
-            val amplitudes = TubaSpectrum.harmonicAmplitudes(frequencyHz, sampleRate, dynamic)
+        fun droneWavetable(frequencyHz: Double, sampleRate: Double, config: DroneConfig = DroneConfig()): Wavetable {
+            val amplitudes = harmonicAmplitudes(frequencyHz, sampleRate, config)
             val totalPower = amplitudes.sumOf { it * it }
             val schroeder = DoubleArray(amplitudes.size) { k ->
                 var sum = 0.0
@@ -208,6 +219,13 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
             // Tables are peak-normalized, so the higher RMS means the lower crest factor.
             return listOf(Wavetable(amplitudes, schroeder), Wavetable(amplitudes)).maxBy { rms(it) }
         }
+
+        /** Harmonic amplitudes of the drone on [frequencyHz], normalized to a maximum of 1. */
+        fun harmonicAmplitudes(frequencyHz: Double, sampleRate: Double, config: DroneConfig = DroneConfig()) =
+            when (config.timbre) {
+                DroneTimbre.RECORDED -> Gr55Spectrum.spectrum.harmonicAmplitudes(frequencyHz, sampleRate)
+                DroneTimbre.SYNTHETIC -> TubaSpectrum.harmonicAmplitudes(frequencyHz, sampleRate, config.dynamic)
+            }
 
         private fun rms(table: Wavetable): Double {
             var sum = 0.0

@@ -92,6 +92,11 @@
     <string name="drone_speaker">Lautsprecher</string>
     <string name="drone_auto_hint">Kopfhörer, wenn verbunden, sonst der Lautsprecher. Mit Kopfhörer klappt die Erkennung am besten: Geräuschunterdrückung aus, ein Ohrhörer reicht.</string>
     <string name="drone_speaker_hint">Immer der Handy-Lautsprecher, auch wenn Kopfhörer verbunden sind.</string>
+    <string name="settings_timbre">Drone-Klang</string>
+    <string name="timbre_recorded">Aufnahme</string>
+    <string name="timbre_recorded_hint">Gemessen an einer echten B-Tuba (B&amp;S GR55): jeder Ton mit seinen eigenen Obertönen.</string>
+    <string name="timbre_synthetic">Synthetisch</string>
+    <string name="timbre_synthetic_hint">Ein einfaches Modell: gleichmäßiger Klang, der sich von Ton zu Ton nur langsam ändert.</string>
     <string name="settings_reset">Standard wiederherstellen</string>
 
     <!-- Practice screen (#67) -->

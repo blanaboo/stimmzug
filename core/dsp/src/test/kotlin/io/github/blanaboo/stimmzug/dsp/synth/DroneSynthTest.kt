@@ -277,11 +277,37 @@ class DroneSynthTest {
                 val samples = DoubleArray(table.size) { table.valueAt(it.toDouble() / table.size) }
                 return 1.0 / SignalMath.rms(samples) // tables are peak-normalized
             }
-            val drone = crest(DroneSynth.droneWavetable(f, FS, TubaSpectrum.Dynamic.MEZZO))
+            val drone = crest(DroneSynth.droneWavetable(f, FS, DroneConfig(timbre = DroneTimbre.SYNTHETIC)))
             val zeroPhase = crest(Wavetable(amplitudes))
             assertTrue(drone <= zeroPhase, "$f Hz: crest $drone vs $zeroPhase")
             if (f < 100.0) assertTrue(drone < 0.8 * zeroPhase, "$f Hz: crest $drone vs $zeroPhase")
         }
+    }
+
+    @Test
+    fun `the recorded timbre sounds with the measured harmonic levels`() {
+        for (midi in listOf(29, 36, 46, 53)) {
+            val f = NoteMath.frequency(midi, 442.0)
+            val synth = DroneSynth(FS, DroneConfig(fadeSec = 0.0))
+            val x = SignalMath.toDoubleArray(render(1.0, at(0.0) { it.play(f) }, synth = synth))
+            val levels = Gr55Spectrum.spectrum.levelsFor(f)
+            val strongest = levels.indices.maxBy { levels[it] }
+            val reference = SignalMath.toneAmplitude(x, (strongest + 1) * f, FS, sample(0.2), sample(1.0))
+            for (k in 0 until minOf(8, levels.size)) {
+                if (levels[k] < -40.0) continue
+                val measured =
+                    20 * log10(SignalMath.toneAmplitude(x, (k + 1) * f, FS, sample(0.2), sample(1.0)) / reference)
+                assertEquals(levels[k], measured, 0.3, "MIDI $midi, harmonic ${k + 1}")
+            }
+        }
+    }
+
+    @Test
+    fun `the synthetic timbre stays available`() {
+        val f = NoteMath.frequency(34)
+        val synthetic = DroneSynth.harmonicAmplitudes(f, FS, DroneConfig(timbre = DroneTimbre.SYNTHETIC))
+        assertArrayEquals(TubaSpectrum.harmonicAmplitudes(f, FS), synthetic, 1e-12)
+        assertEquals(DroneTimbre.RECORDED, DroneConfig().timbre)
     }
 
     @Test

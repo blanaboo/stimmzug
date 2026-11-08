@@ -13,6 +13,7 @@ import kotlin.system.exitProcess
 
 const val USAGE = """Verwendung: replay <aufnahme.wav|aiff> [Optionen]
        replay <labor-sitzung> [--detector mpm|yin] [--no-lowpass] [--out <ordner>]
+       replay --spectrum <aufnahme> [--a4 <Hz>] [--name <instrument>] [--kotlin <datei.kt>] [--out <ordner>]
 
 Spielt eine Aufnahme durch Tonhöhenerkennung, Pegel-Gate und Treffer-Logik und schreibt
 <name>.csv (ein Frame pro Zeile), <name>.png (Diagramm) und <name>.txt (Zusammenfassung).
@@ -21,6 +22,10 @@ Ein Ordner einer Sitzung des Audio-Labors (takes.csv, segments.csv, WAV-Dateien)
 ausgewertet: report.md, report.csv und je Aufnahme Diagramm und CSV in <out>/charts/.
 Standard für <out> ist <labor-sitzung>/auswertung. Zielton und Kalibrierung kommen aus der Sitzung.
 
+Mit --spectrum: sucht die gehaltenen Töne einer Aufnahme und misst je Ton die Stärke der Teiltöne
+für den Drone-Klang (#72). Schreibt <name>-obertoene.csv (jede Aufnahme) und <name>-obertoene.md
+(je Ton), mit --kotlin <datei.kt> zusätzlich die Klangtabelle für core/dsp (Objektname = Dateiname,
+--name = Instrument, z. B. "B&S GR55").
   --target <ton>        Zielton: MIDI-Nummer (34), "Bb1", "Kontra-B", "großes F", "f'" oder "58.27Hz".
                         Ohne Zielton: freie Erkennung ohne Treffer-Logik.
   --a4 <Hz>             Kammerton a' (Standard 440)
@@ -47,7 +52,10 @@ data class Arguments(
     val targetText: String?,
     val a4Hz: Double,
     val outDir: File?,
-    val options: ReplayOptions
+    val options: ReplayOptions,
+    val spectrum: Boolean = false,
+    val instrument: String = "Tuba",
+    val kotlinFile: File? = null
 )
 
 fun parseArguments(args: List<String>): Arguments {
@@ -59,6 +67,9 @@ fun parseArguments(args: List<String>): Arguments {
     var detector = DetectorChoice.MPM
     var match = MatchConfig(preListenSec = 0.0)
     var lowPass = true
+    var spectrum = false
+    var instrument = "Tuba"
+    var kotlinFile: File? = null
     var i = 0
     fun value(): String = args.getOrNull(++i) ?: usageError("Wert fehlt für ${args[i - 1]}")
     fun number(): Double = value().replace(',', '.').toDoubleOrNull() ?: usageError("Keine Zahl: ${args[i]}")
@@ -84,6 +95,12 @@ fun parseArguments(args: List<String>): Arguments {
 
             "--no-lowpass" -> lowPass = false
 
+            "--spectrum" -> spectrum = true
+
+            "--name" -> instrument = value()
+
+            "--kotlin" -> kotlinFile = File(value())
+
             "--detector" -> detector = when (value().lowercase()) {
                 "mpm" -> DetectorChoice.MPM
                 "yin" -> DetectorChoice.YIN
@@ -106,7 +123,10 @@ fun parseArguments(args: List<String>): Arguments {
         target,
         a4,
         out,
-        ReplayOptions(targetHz, detector, calibrationSec = calibrate, match = match, targetLowPass = lowPass)
+        ReplayOptions(targetHz, detector, calibrationSec = calibrate, match = match, targetLowPass = lowPass),
+        spectrum,
+        instrument,
+        kotlinFile
     )
 }
 
@@ -134,33 +154,71 @@ fun run(args: List<String>, out: PrintStream = System.out, err: PrintStream = Sy
         err.println("Fehler: ${e.message}")
         return 2
     }
-    if (parsed.input.isDirectory) return runLab(parsed, out, err)
-    return try {
-        val clip = AudioFileReader.read(parsed.input)
-        val result = Replay.run(clip.samples, clip.sampleRate, parsed.options)
-        val dir = (parsed.outDir ?: parsed.input.absoluteFile.parentFile).apply { mkdirs() }
-        val base = parsed.input.nameWithoutExtension
-        val csv = File(dir, "$base.csv")
-        val png = File(dir, "$base.png")
-        val txt = File(dir, "$base.txt")
-        val targetHz = parsed.options.targetHz
-        val targetName = parsed.targetText?.let { text -> targetHz?.let { describeTarget(text, it, parsed.a4Hz) } }
-        Reports.writeCsv(result, csv, parsed.a4Hz)
-        Chart.render(result, chartTitle(parsed.input.name, targetName, result), parsed.a4Hz, png)
-        val summary = Reports.summary(result, parsed.input.name, targetName)
-        txt.writeText(summary + "\n", Charsets.UTF_8)
-        out.println(summary)
-        out.println("CSV: ${csv.path}")
-        out.println("PNG: ${png.path}")
-        out.println("Zusammenfassung: ${txt.path}")
-        0
-    } catch (e: UnsupportedAudioFileException) {
-        err.println("Fehler: Audioformat nicht lesbar (${e.message}). Unterstützt: WAV, AIFF.")
-        1
-    } catch (e: IllegalArgumentException) {
-        err.println("Fehler: ${e.message}")
-        1
+    return when {
+        parsed.spectrum -> runSpectrum(parsed, out, err)
+        parsed.input.isDirectory -> runLab(parsed, out, err)
+        else -> runRecording(parsed, out, err)
     }
+}
+
+/** Replays one recording into CSV, chart and summary. */
+private fun runRecording(parsed: Arguments, out: PrintStream, err: PrintStream): Int = try {
+    val clip = AudioFileReader.read(parsed.input)
+    val result = Replay.run(clip.samples, clip.sampleRate, parsed.options)
+    val dir = (parsed.outDir ?: parsed.input.absoluteFile.parentFile).apply { mkdirs() }
+    val base = parsed.input.nameWithoutExtension
+    val csv = File(dir, "$base.csv")
+    val png = File(dir, "$base.png")
+    val txt = File(dir, "$base.txt")
+    val targetHz = parsed.options.targetHz
+    val targetName = parsed.targetText?.let { text -> targetHz?.let { describeTarget(text, it, parsed.a4Hz) } }
+    Reports.writeCsv(result, csv, parsed.a4Hz)
+    Chart.render(result, chartTitle(parsed.input.name, targetName, result), parsed.a4Hz, png)
+    val summary = Reports.summary(result, parsed.input.name, targetName)
+    txt.writeText(summary + "\n", Charsets.UTF_8)
+    out.println(summary)
+    out.println("CSV: ${csv.path}")
+    out.println("PNG: ${png.path}")
+    out.println("Zusammenfassung: ${txt.path}")
+    0
+} catch (e: UnsupportedAudioFileException) {
+    err.println("Fehler: Audioformat nicht lesbar (${e.message}). Unterstützt: WAV, AIFF.")
+    1
+} catch (e: IllegalArgumentException) {
+    err.println("Fehler: ${e.message}")
+    1
+}
+
+/** Measures the harmonic levels of the held notes in a recording, see [ToneSpectrum]. */
+private fun runSpectrum(parsed: Arguments, out: PrintStream, err: PrintStream): Int = try {
+    val clip = AudioFileReader.read(parsed.input)
+    val options = SpectrumOptions(a4Hz = parsed.a4Hz)
+    val notes = ToneSpectrum.findNotes(clip.samples, clip.sampleRate, options)
+    val levels = ToneSpectrum.combine(notes, options)
+    val dir = (parsed.outDir ?: parsed.input.absoluteFile.parentFile).apply { mkdirs() }
+    val base = parsed.input.nameWithoutExtension + "-obertoene"
+    val csv = File(dir, "$base.csv")
+    val md = File(dir, "$base.md")
+    SpectrumReport.writeCsv(notes, csv)
+    md.writeText(SpectrumReport.markdown(parsed.input.name, parsed.a4Hz, notes, levels), Charsets.UTF_8)
+    out.println(
+        "${notes.size} gehaltene Töne gefunden, ${levels.size} Töne in der Tabelle " +
+            "(davon ${levels.count { it.takes == 0 }} aus den Nachbartönen ergänzt)"
+    )
+    parsed.kotlinFile?.let { file ->
+        val code = SpectrumReport.kotlin(file, parsed.instrument, parsed.input.name, parsed.a4Hz, levels)
+        file.writeText(code, Charsets.UTF_8)
+        out.println("Kotlin: ${file.path}")
+    }
+    out.println("CSV: ${csv.path}")
+    out.println("Bericht: ${md.path}")
+    0
+} catch (e: UnsupportedAudioFileException) {
+    err.println("Fehler: Audioformat nicht lesbar (${e.message}). Unterstützt: WAV, AIFF.")
+    1
+} catch (e: IllegalArgumentException) {
+    err.println("Fehler: ${e.message}")
+    1
 }
 
 /** Evaluates a session folder of the audio lab, see [LabReport]. */

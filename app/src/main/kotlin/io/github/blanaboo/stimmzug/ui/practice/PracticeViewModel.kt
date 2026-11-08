@@ -80,7 +80,7 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
         if (chosen.isEmpty()) return
         closeEngine()
         val app = getApplication<Application>()
-        val drone = DroneTrack(app, preferSpeaker = settings.droneOutput == DroneOutput.SPEAKER)
+        val drone = DroneTrack(app, settings.droneOutput == DroneOutput.SPEAKER, settings.droneTimbre)
         val config = settings.toSessionConfig()
         lateinit var engine: PracticeEngine
         val source = PracticeInputs.override?.invoke { engine.state.value.snapshot } ?: MicInput(app)

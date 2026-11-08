@@ -7,7 +7,9 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import io.github.blanaboo.stimmzug.dsp.session.DroneControl
+import io.github.blanaboo.stimmzug.dsp.synth.DroneConfig
 import io.github.blanaboo.stimmzug.dsp.synth.DroneSynth
+import io.github.blanaboo.stimmzug.dsp.synth.DroneTimbre
 import java.io.Closeable
 import kotlin.math.max
 
@@ -47,12 +49,17 @@ data class OutputRoute(val kind: OutputKind, val name: String? = null) {
  * The drone on the media stream (ADR 0005, #61): a [DroneSynth] rendered on its own thread into an [AudioTrack].
  * Silent until [play]. With [preferSpeaker] the track asks for the built-in loudspeaker even if headphones are
  * connected; otherwise Android routes it (headphones when connected). [route] tells where it actually goes.
+ * [timbre]: the recorded B♭ tuba or the synthetic model (#72).
  */
-class DroneTrack(context: Context, preferSpeaker: Boolean, val sampleRate: Int = SAMPLE_RATE) :
-    DroneControl,
+class DroneTrack(
+    context: Context,
+    preferSpeaker: Boolean,
+    timbre: DroneTimbre = DroneTimbre.RECORDED,
+    val sampleRate: Int = SAMPLE_RATE
+) : DroneControl,
     Closeable {
 
-    private val synth = DroneSynth(sampleRate.toDouble())
+    private val synth = DroneSynth(sampleRate.toDouble(), DroneConfig(timbre = timbre))
     private val track = AudioTrack.Builder()
         .setAudioAttributes(
             AudioAttributes.Builder()
