@@ -1,5 +1,6 @@
 package io.github.blanaboo.stimmzug.dsp.synth
 
+import io.github.blanaboo.stimmzug.dsp.session.DroneControl
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.PI
 import kotlin.math.max
@@ -32,7 +33,7 @@ data class DroneConfig(
  * the next block. [render] must be called from a single audio thread. Output is mono, peak ≤ 1:
  * drone ≤ [DRONE_PEAK] (≤ √2·[DRONE_PEAK] during an equal-power crossfade) plus chime ≤ [ConfirmationChime.PEAK].
  */
-class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()) {
+class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()) : DroneControl {
 
     private sealed interface Command {
         class Play(val frequencyHz: Double, val table: Wavetable) : Command
@@ -67,7 +68,7 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
 
     /** Starts the drone on [frequencyHz] (fade in) or changes to it (crossfade). The octave offset is added. */
     @Synchronized
-    fun play(frequencyHz: Double) {
+    override fun play(frequencyHz: Double) {
         require(frequencyHz > 0.0) { "frequency must be positive, was $frequencyHz" }
         noteHz = frequencyHz
         lastNoteHz = frequencyHz
@@ -76,7 +77,7 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
 
     /** Fades the drone out; a confirmation chime keeps sounding. */
     @Synchronized
-    fun stop() {
+    override fun stop() {
         noteHz = null
         commands += Command.Stop
     }
@@ -98,7 +99,7 @@ class DroneSynth(val sampleRate: Double, val config: DroneConfig = DroneConfig()
 
     /** Mixes the confirmation chime into the output, on the pitch class of the last played note. */
     @Synchronized
-    fun playConfirmation() {
+    override fun playConfirmation() {
         commands += Command.Chime(ConfirmationChime.baseFrequencyFor(lastNoteHz))
     }
 
