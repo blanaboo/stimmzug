@@ -11,9 +11,10 @@ object SessionLogCsv {
     val HEADER = listOf(
         "session_start", "profile", "tuba_key", "valve_count", "extra_valves", "compensating", "triggers",
         "a4_hz", "tolerance_cents", "hold_sec", "audio_source", "drone_route", "drone_timbre", "ambient_db",
-        "threshold_db", "warm_up", "exercise", "attempt", "index", "note", "midi", "target_hz", "partial", "valves",
-        "start_s", "previous_midi", "interval", "status", "time_to_hit_s", "entry_cents", "hold_mean_cents",
-        "hold_spread_cents", "wrong_octave_share", "wrong_note_share", "listened_s", "display", "drone"
+        "threshold_db", "warm_up", "warm_up_sec", "warm_up_age_min", "exercise", "attempt", "index", "note", "midi",
+        "target_hz", "partial", "valves", "start_s", "previous_midi", "interval", "status", "time_to_hit_s",
+        "entry_cents", "hold_mean_cents", "hold_spread_cents", "wrong_octave_share", "wrong_note_share",
+        "listened_s", "display", "drone"
     )
 
     fun write(sessions: List<LoggedSession>): String = buildString {
@@ -29,7 +30,7 @@ object SessionLogCsv {
         return listOf(
             s.startedAt, p?.name, p?.key, p?.valves, p?.extraValves?.joinToString("+"), p?.compensating,
             p?.let { triggers(it) }, s.a4Hz, s.toleranceCents, s.holdSec, s.audioSource, s.droneRoute,
-            s.droneTimbre, s.ambientDb, s.thresholdDb, s.warmUp, s.exercise
+            s.droneTimbre, s.ambientDb, s.thresholdDb, s.warmUp, s.warmUpSec, s.warmUpAgeMin, s.exercise
         )
     }
 

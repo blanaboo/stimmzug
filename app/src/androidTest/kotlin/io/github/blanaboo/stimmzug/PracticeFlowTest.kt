@@ -16,6 +16,7 @@ import io.github.blanaboo.stimmzug.data.log.SessionLogRepository
 import io.github.blanaboo.stimmzug.data.settings.DisplayMode
 import io.github.blanaboo.stimmzug.data.settings.PracticeSettings
 import io.github.blanaboo.stimmzug.data.settings.SettingsRepository
+import io.github.blanaboo.stimmzug.data.warmup.WarmUpRepository
 import io.github.blanaboo.stimmzug.dsp.music.NoteNames
 import io.github.blanaboo.stimmzug.practice.ExerciseKind
 import io.github.blanaboo.stimmzug.practice.PracticeInputs
@@ -29,6 +30,7 @@ import io.github.blanaboo.stimmzug.ui.practice.TAG_PRACTICE_LOW
 import io.github.blanaboo.stimmzug.ui.practice.TAG_PRACTICE_NOTE
 import io.github.blanaboo.stimmzug.ui.practice.TAG_PRACTICE_START
 import io.github.blanaboo.stimmzug.ui.practice.TAG_SUMMARY_TITLE
+import io.github.blanaboo.stimmzug.ui.practice.TAG_WARM_UP_READY
 import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.flow.first
@@ -63,6 +65,8 @@ class PracticeFlowTest {
         PracticeInputs.override = { snapshot -> VirtualTubistInput(snapshot) }
         before = settings.settings.first()
         loggedBefore = SessionLogRepository(context).readAll().size
+        // The first exercise of the day asks whether the player is warmed up (#44).
+        WarmUpRepository(context).clear()
         settings.update { PracticeSettings(holdSec = 2) }
     }
 
@@ -83,6 +87,9 @@ class PracticeFlowTest {
         pick(TAG_PRACTICE_LOW, GROSSES_F)
         pick(TAG_PRACTICE_HIGH, GROSSES_GES)
         compose.onNodeWithTag(TAG_PRACTICE_START).performScrollTo().performClick()
+        compose.waitUntil(TIMEOUT_MS) { exists(TAG_WARM_UP_READY) }
+        screenshot("1b-einspielen")
+        compose.onNodeWithTag(TAG_WARM_UP_READY).performClick()
 
         // Calibration 3 s, then two notes with pre-listen, glide, 2 s hold, confirmation and breathing pause.
         if (screenshots) timedScreenshots()
@@ -99,9 +106,12 @@ class PracticeFlowTest {
         compose.waitUntil(TIMEOUT_MS) { runBlocking { log.readAll().size } > loggedBefore }
         val session = runBlocking { log.readAll() }.last()
         assertEquals("VIRTUAL_TUBIST", session.audioSource)
+        assertEquals("WARMED_UP", session.warmUp)
         assertTrue(session.exercise, session.exercise.startsWith("CHROMATIC"))
         assertEquals(listOf(GROSSES_F, GROSSES_GES), session.attempts.map { it.midi })
-        assertTrue(session.attempts.all { it.status == "HIT" && it.display == "EAR" && it.entryCents != null })
+        assertTrue(session.attempts.all { it.status == "HIT" && it.entryCents != null })
+        // The screenshot run switches to the tuner after the first hit.
+        assertEquals(listOf("EAR", if (screenshots) "TUNER" else "EAR"), session.attempts.map { it.display })
     }
 
     /** Debug builds record every session (#75). */

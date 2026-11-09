@@ -35,6 +35,9 @@ class DisplayTimeline(initial: DisplayMode) {
     }
 }
 
+/** Today's warm-up (#44) as the log keeps it: the answer, how long the timer ran, minutes since the answer. */
+data class WarmUpInfo(val answer: String, val durationSec: Int?, val ageMin: Double)
+
 /** What the session log needs to know about a session besides its summary. */
 class SessionContext(
     val startedAt: String,
@@ -42,7 +45,8 @@ class SessionContext(
     val config: SessionConfig,
     val droneTimbre: DroneTimbre,
     val exercise: String,
-    val display: DisplayTimeline
+    val display: DisplayTimeline,
+    val warmUp: WarmUpInfo? = null
 )
 
 /** Turns a finished session into its log entry (#37). */
@@ -66,6 +70,9 @@ object SessionLogBuilder {
         droneTimbre = context.droneTimbre.name,
         ambientDb = calibration?.ambientDb,
         thresholdDb = calibration?.openThresholdDb,
+        warmUp = context.warmUp?.answer,
+        warmUpSec = context.warmUp?.durationSec,
+        warmUpAgeMin = context.warmUp?.ageMin,
         exercise = context.exercise,
         attempts = summary.attempts.mapIndexed { i, attempt ->
             attempt(context, attempt, summary.attempts.getOrNull(i - 1)?.midi)
