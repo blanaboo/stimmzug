@@ -93,7 +93,8 @@ class MatchScenarioTest {
         assertTrue(outcome.result.hit)
         // In tune after ~0.7 s of the glide, then 3 s hold.
         assertTrue(outcome.result.timeToHitSec!! in 3.6..4.1, "time to hit ${outcome.result.timeToHitSec}")
-        assertTrue(outcome.result.entryCents!! < -20.0, "entry ${outcome.result.entryCents}")
+        // Median of the first 0.5 s of the glide: about −20 ct.
+        assertTrue(outcome.result.entryCents!! in -25.0..-12.0, "entry ${outcome.result.entryCents}")
         assertTrue(outcome.statuses.any { it.verdict == PitchVerdict.FLAT })
     }
 

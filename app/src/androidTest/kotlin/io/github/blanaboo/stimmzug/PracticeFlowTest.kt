@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.blanaboo.stimmzug.data.log.SessionLogRepository
 import io.github.blanaboo.stimmzug.data.settings.DisplayMode
 import io.github.blanaboo.stimmzug.data.settings.PracticeSettings
 import io.github.blanaboo.stimmzug.data.settings.SettingsRepository
@@ -33,6 +34,7 @@ import java.io.FileOutputStream
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -52,6 +54,7 @@ class PracticeFlowTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val settings = SettingsRepository(context)
     private lateinit var before: PracticeSettings
+    private var loggedBefore = 0
 
     @Before
     fun virtualTubistAndShortHold() = runBlocking {
@@ -59,6 +62,7 @@ class PracticeFlowTest {
             .grantRuntimePermission(context.packageName, Manifest.permission.RECORD_AUDIO)
         PracticeInputs.override = { snapshot -> VirtualTubistInput(snapshot) }
         before = settings.settings.first()
+        loggedBefore = SessionLogRepository(context).readAll().size
         settings.update { PracticeSettings(holdSec = 2) }
     }
 
@@ -86,6 +90,18 @@ class PracticeFlowTest {
         compose.onNodeWithTag(TAG_SUMMARY_TITLE).assertTextEquals("2 von 2 sauber")
         screenshot("7-zusammenfassung")
         assertRecorded()
+        assertLogged()
+    }
+
+    /** Every session lands in the session log (#37), written right after the summary. */
+    private fun assertLogged() {
+        val log = SessionLogRepository(context)
+        compose.waitUntil(TIMEOUT_MS) { runBlocking { log.readAll().size } > loggedBefore }
+        val session = runBlocking { log.readAll() }.last()
+        assertEquals("VIRTUAL_TUBIST", session.audioSource)
+        assertTrue(session.exercise, session.exercise.startsWith("CHROMATIC"))
+        assertEquals(listOf(GROSSES_F, GROSSES_GES), session.attempts.map { it.midi })
+        assertTrue(session.attempts.all { it.status == "HIT" && it.display == "EAR" && it.entryCents != null })
     }
 
     /** Debug builds record every session (#75). */

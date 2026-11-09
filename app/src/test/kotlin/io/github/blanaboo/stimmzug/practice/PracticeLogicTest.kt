@@ -11,6 +11,7 @@ import io.github.blanaboo.stimmzug.dsp.session.DroneControl
 import io.github.blanaboo.stimmzug.dsp.session.NoteStatus
 import io.github.blanaboo.stimmzug.dsp.session.PracticeSession
 import io.github.blanaboo.stimmzug.dsp.session.SessionPhase
+import io.github.blanaboo.stimmzug.dsp.session.SessionSummary
 import io.github.blanaboo.stimmzug.ui.practice.octavesOff
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -128,6 +129,33 @@ class PracticeLogicTest {
 
         engine.close()
         assertTrue(input.closed && closed)
+    }
+
+    @Test
+    fun theEngineReportsTheEndOnceAlsoWhenThePlayerLeaves() {
+        val ends = ArrayList<SessionSummary>()
+        val input = ManualInput()
+        val session = PracticeSession(listOf(41, 43), 48_000.0, SilentDrone())
+        val engine = PracticeEngine(session, input, onEnd = { ends += it })
+        engine.start()
+        input.push(4.5)
+        assertTrue(ends.isEmpty())
+        engine.close()
+        assertEquals(1, ends.size)
+        assertEquals(listOf(NoteStatus.STOPPED), ends[0].attempts.map { it.status })
+        engine.close()
+        assertEquals(1, ends.size)
+
+        val finishing = ManualInput()
+        val done = ArrayList<SessionSummary>()
+        val second = PracticeEngine(PracticeSession(listOf(41), 48_000.0, SilentDrone()), finishing) { done += it }
+        second.start()
+        finishing.push(3.5)
+        second.stop()
+        finishing.push(0.02)
+        assertEquals(1, done.size)
+        second.close()
+        assertEquals(1, done.size)
     }
 
     @Test

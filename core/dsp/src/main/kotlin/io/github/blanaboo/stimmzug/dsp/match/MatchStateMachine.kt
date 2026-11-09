@@ -29,6 +29,7 @@ class MatchStateMachine(val config: MatchConfig = MatchConfig()) {
     private val window = ArrayDeque<Double>()
     private var lastPresentTime: Double? = null
     private val entry = ArrayList<Double>()
+    private var entryStart: Double? = null
 
     private var holdStart = 0.0
     private var lastInRange = 0.0
@@ -51,6 +52,7 @@ class MatchStateMachine(val config: MatchConfig = MatchConfig()) {
         window.clear()
         lastPresentTime = null
         entry.clear()
+        entryStart = null
         hitTime = null
         resetHold(0.0)
         wrongOctaveSec = 0.0
@@ -96,7 +98,8 @@ class MatchStateMachine(val config: MatchConfig = MatchConfig()) {
             holdMeanCents = mean,
             holdSpreadCents = spread,
             wrongOctaveSec = wrongOctaveSec,
-            wrongNoteSec = wrongNoteSec
+            wrongNoteSec = wrongNoteSec,
+            listenedSec = max(0.0, (hitTime ?: lastFrameTime ?: listenStart) - listenStart)
         )
     }
 
@@ -112,7 +115,8 @@ class MatchStateMachine(val config: MatchConfig = MatchConfig()) {
         val last = lastPresentTime
         if (last != null && t - last > config.graceSec + EPS) window.clear()
         lastPresentTime = t
-        if (entry.size < config.medianFrames) entry += cents
+        val first = entryStart ?: t.also { entryStart = it }
+        if (t - first <= config.entrySec + EPS) entry += cents
         window.addLast(cents)
         while (window.size > config.medianFrames) window.removeFirst()
         return median(window)

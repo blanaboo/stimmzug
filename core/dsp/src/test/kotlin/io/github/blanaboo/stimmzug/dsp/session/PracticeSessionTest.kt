@@ -156,6 +156,13 @@ class PracticeSessionTest {
             "drone on each note, chime and fade-out after each hit"
         )
         assertTrue(summary.durationSec in 30.0..60.0, "duration ${summary.durationSec}")
+        // One attempt per note, numbered in order, each starting with its drone after the 3 s calibration.
+        assertEquals(listOf(1, 2, 3, 4), summary.attempts.map { it.number })
+        assertEquals(notes, summary.attempts.map { it.midi })
+        assertTrue(summary.attempts.all { it.status == NoteStatus.HIT && it.result.listenedSec > 3.0 })
+        assertEquals(3.0, summary.attempts[0].startSec, 0.03)
+        assertTrue(summary.attempts.zipWithNext().all { (a, b) -> b.startSec > a.startSec + 5.0 })
+        assertTrue(run.session.calibrationResult!!.ambientDb < -30.0)
     }
 
     @Test
@@ -175,6 +182,9 @@ class PracticeSessionTest {
         val outcomes = run.session.summary().outcomes
         assertEquals(listOf(NoteStatus.SKIPPED, NoteStatus.HIT), outcomes.map { it.status })
         assertFalse(outcomes[0].result!!.hit)
+        val attempts = run.session.summary().attempts
+        assertEquals(listOf(NoteStatus.SKIPPED, NoteStatus.HIT), attempts.map { it.status })
+        assertTrue(attempts[0].result.listenedSec > 10.0, "listened until the skip")
     }
 
     @Test
@@ -201,6 +211,15 @@ class PracticeSessionTest {
         assertEquals(NoteStatus.HIT, first.status)
         assertTrue(resumedAt - pausedAt >= 2.0)
         assertTrue(first.result!!.timeToHitSec!! >= 3.0, "hold counted from the restart: ${first.result}")
+        val attempts = run.session.summary().attempts
+        assertEquals(
+            listOf(41 to NoteStatus.STOPPED, 41 to NoteStatus.HIT, 46 to NoteStatus.HIT),
+            attempts.map {
+                it.midi to
+                    it.status
+            }
+        )
+        assertTrue(attempts[1].startSec >= resumedAt - 1e-9)
     }
 
     @Test
@@ -216,6 +235,12 @@ class PracticeSessionTest {
         assertFalse(summary.outcomes[1].result!!.hit)
         assertNull(summary.outcomes[2].result)
         assertEquals("stop", run.drone.calls.last())
+        assertEquals(
+            listOf(34 to NoteStatus.HIT, 41 to NoteStatus.STOPPED),
+            summary.attempts.map {
+                it.midi to it.status
+            }
+        )
     }
 
     @Test
@@ -239,6 +264,11 @@ class PracticeSessionTest {
             run.drone.calls.take(5)
         )
         assertTrue(firstResult != null)
+        assertEquals(
+            listOf(41 to NoteStatus.HIT, 46 to NoteStatus.SKIPPED, 41 to NoteStatus.HIT, 46 to NoteStatus.HIT),
+            run.session.summary().attempts.map { it.midi to it.status },
+            "every attempt is kept, also the replayed note"
+        )
     }
 
     @Test
@@ -252,6 +282,8 @@ class PracticeSessionTest {
         run.session.stop()
         assertEquals(SessionPhase.FINISHED, run.session.snapshot.phase)
         assertEquals(listOf(NoteStatus.NOT_REACHED), run.session.summary().outcomes.map { it.status })
+        assertTrue(run.session.summary().attempts.isEmpty())
+        assertNull(run.session.calibrationResult)
         run.session.stop()
         assertEquals(listOf("play ${hz(41)}", "stop"), run.drone.calls)
     }
