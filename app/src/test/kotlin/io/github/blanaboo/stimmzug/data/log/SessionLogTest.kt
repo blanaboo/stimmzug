@@ -58,13 +58,22 @@ class SessionLogTest {
         )
     )
 
-    private fun built(display: DisplayTimeline = DisplayTimeline(DisplayMode.EAR)) = SessionLogBuilder.build(
-        SessionContext("2026-11-09T18:30:05", melton, config, DroneTimbre.RECORDED, "KEY_NOTES B-Dur", display),
-        summary(),
-        CalibrationResult(ambientDb = -62.0, marginDb = 10.0),
-        audioSource = "UNPROCESSED",
-        route = OutputRoute(OutputKind.HEADPHONES, "Bose QC Earbuds II")
-    )
+    private fun built(display: DisplayTimeline = DisplayTimeline(DisplayMode.EAR), warmUp: WarmUpInfo? = null) =
+        SessionLogBuilder.build(
+            SessionContext(
+                "2026-11-09T18:30:05",
+                melton,
+                config,
+                DroneTimbre.RECORDED,
+                "KEY_NOTES B-Dur",
+                display,
+                warmUp
+            ),
+            summary(),
+            CalibrationResult(ambientDb = -62.0, marginDb = 10.0),
+            audioSource = "UNPROCESSED",
+            route = OutputRoute(OutputKind.HEADPHONES, "Bose QC Earbuds II")
+        )
 
     @Test
     fun aSessionKeepsInstrumentSettingsAndEveryAttempt() {
@@ -88,6 +97,18 @@ class SessionLogTest {
         assertEquals(2 to "4", second.partial to second.valves)
         assertEquals("SKIPPED", second.status)
         assertEquals("EAR", first.display)
+    }
+
+    @Test
+    fun theWarmUpOfTheDayIsLogged() {
+        val s = built(warmUp = WarmUpInfo("WARMED_UP_NOW", durationSec = 240, ageMin = 12.5))
+        assertEquals("WARMED_UP_NOW", s.warmUp)
+        assertEquals(240, s.warmUpSec)
+        assertEquals(12.5, s.warmUpAgeMin!!, 0.0)
+        val header = SessionLogCsv.HEADER
+        val row = header.zip(SessionLogCsv.write(listOf(s)).lines()[1].split(",")).toMap()
+        val warmUpCells = listOf(row["warm_up"], row["warm_up_sec"], row["warm_up_age_min"])
+        assertEquals(listOf("WARMED_UP_NOW", "240", "12.5"), warmUpCells)
     }
 
     @Test

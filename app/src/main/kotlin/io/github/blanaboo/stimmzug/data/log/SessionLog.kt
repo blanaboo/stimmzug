@@ -27,8 +27,12 @@ data class LoggedSession(
     /** Room and drone level of the calibration and the resulting gate threshold, in dBFS. */
     @SerialName("ambient_db") val ambientDb: Double? = null,
     @SerialName("threshold_db") val thresholdDb: Double? = null,
-    /** The answer to the warm-up hint (#44), `null` while there is none. */
+    /** Today's answer to the warm-up hint (#44): WARMED_UP or WARMED_UP_NOW, `null` if not given today. */
     @SerialName("warm_up") val warmUp: String? = null,
+    /** How long the warm-up timer ran (WARMED_UP_NOW). */
+    @SerialName("warm_up_sec") val warmUpSec: Int? = null,
+    /** Minutes from the answer to the start of this session. */
+    @SerialName("warm_up_age_min") val warmUpAgeMin: Double? = null,
     /** The exercise as chosen, readable for a person. */
     val exercise: String,
     val attempts: List<LoggedAttempt> = emptyList()

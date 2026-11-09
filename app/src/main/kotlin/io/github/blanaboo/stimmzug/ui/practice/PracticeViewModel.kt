@@ -12,11 +12,14 @@ import io.github.blanaboo.stimmzug.data.log.DisplayTimeline
 import io.github.blanaboo.stimmzug.data.log.SessionContext
 import io.github.blanaboo.stimmzug.data.log.SessionLogBuilder
 import io.github.blanaboo.stimmzug.data.log.SessionLogRepository
+import io.github.blanaboo.stimmzug.data.log.WarmUpInfo
 import io.github.blanaboo.stimmzug.data.profile.ProfileRepository
 import io.github.blanaboo.stimmzug.data.settings.DisplayMode
 import io.github.blanaboo.stimmzug.data.settings.DroneOutput
 import io.github.blanaboo.stimmzug.data.settings.PracticeSettings
 import io.github.blanaboo.stimmzug.data.settings.SettingsRepository
+import io.github.blanaboo.stimmzug.data.warmup.WarmUp
+import io.github.blanaboo.stimmzug.data.warmup.WarmUpRepository
 import io.github.blanaboo.stimmzug.dsp.music.InstrumentProfile
 import io.github.blanaboo.stimmzug.dsp.session.PracticeSession
 import io.github.blanaboo.stimmzug.dsp.session.SessionConfig
@@ -82,8 +85,13 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch { settingsRepository.update { it.copy(display = mode) } }
     }
 
-    /** Starts the exercise; the microphone permission must be granted. */
-    fun start() {
+    /** The warm-up hint before the first exercise of the day (#44). */
+    val warmUp = WarmUpFlow(WarmUpRepository(application), viewModelScope) { begin(it) }
+
+    /** Starts the exercise, after the warm-up question before the first one of the day; needs the microphone. */
+    fun start() = warmUp.request()
+
+    private fun begin(today: WarmUp?) {
         val settings = settings.value ?: PracticeSettings()
         val chosen = choice.notes(ExerciseChoice.instrumentFor(profile.value?.key), seed = System.currentTimeMillis())
         if (chosen.isEmpty()) return
@@ -96,7 +104,7 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
         val input = PracticeInputs.tap?.wrap(source, TapInfo(chosen, config, choice.toString())) { engine.state.value }
             ?: source
         val session = PracticeSession(chosen, input.sampleRate.toDouble(), drone, config)
-        val context = logContext(settings, config)
+        val context = logContext(settings, config, today)
         engine = PracticeEngine(session, input, route = { drone.route }, onClose = drone::close) { summary ->
             if (summary.attempts.isNotEmpty()) {
                 val calibration = session.calibrationResult
@@ -124,13 +132,16 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
     }
 
     /** What the session log keeps besides the results (#37). */
-    private fun logContext(settings: PracticeSettings, config: SessionConfig) = SessionContext(
+    private fun logContext(settings: PracticeSettings, config: SessionConfig, warmUp: WarmUp?) = SessionContext(
         startedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString(),
         profile = profile.value,
         config = config,
         droneTimbre = settings.droneTimbre,
         exercise = choice.logText,
-        display = DisplayTimeline(settings.display)
+        display = DisplayTimeline(settings.display),
+        warmUp = warmUp?.let {
+            WarmUpInfo(it.answer.name, it.durationSec, (System.currentTimeMillis() - it.atMillis) / MILLIS_PER_MINUTE)
+        }
     )
 
     fun pause() = running?.pause()
@@ -164,4 +175,8 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
     }
 
     override fun onCleared() = closeEngine()
+
+    private companion object {
+        const val MILLIS_PER_MINUTE = 60_000.0
+    }
 }

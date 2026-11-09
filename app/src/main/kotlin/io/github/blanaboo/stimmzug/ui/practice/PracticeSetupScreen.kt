@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -22,6 +23,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +61,8 @@ const val TAG_PRACTICE_KIND = "practice_kind_"
 const val TAG_PRACTICE_LOW = "practice_low"
 const val TAG_PRACTICE_HIGH = "practice_high"
 const val TAG_PRACTICE_NOTE = "practice_note_"
+const val TAG_PRACTICE_TUBA = "practice_tuba"
+const val TAG_PRACTICE_TUBA_ITEM = "practice_tuba_"
 
 /** What "Übung wählen" can do. */
 class SetupActions(
@@ -67,7 +71,9 @@ class SetupActions(
     val setDisplay: (DisplayMode) -> Unit = {},
     val openProfiles: () -> Unit = {},
     val openSettings: () -> Unit = {},
-    val start: () -> Unit = {}
+    val start: () -> Unit = {},
+    /** Makes the profile with this id the active tuba (#44). */
+    val chooseProfile: (String) -> Unit = {}
 )
 
 /** Everything "Übung wählen" shows. */
@@ -76,6 +82,8 @@ class SetupState(
     val noteCount: Int,
     val settings: PracticeSettings,
     val profile: InstrumentProfile?,
+    /** All tubas of the player; with more than one, „ändern“ picks among them right here (#44). */
+    val profiles: List<InstrumentProfile> = emptyList(),
     /** The notes the range pickers offer (the active tuba's compass). */
     val range: IntRange,
     val micDenied: Boolean = false
@@ -102,7 +110,7 @@ fun PracticeSetupScreen(state: SetupState, actions: SetupActions, modifier: Modi
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            TubaCard(state.profile, actions.openProfiles)
+            TubaCard(state.profile, state.profiles, actions)
             ExerciseSection(state, actions)
             DisplaySection(state.settings.display, actions.setDisplay)
             SettingsLine(state.settings, actions.openSettings)
@@ -125,7 +133,7 @@ fun PracticeSetupScreen(state: SetupState, actions: SetupActions, modifier: Modi
 }
 
 @Composable
-private fun TubaCard(profile: InstrumentProfile?, openProfiles: () -> Unit) {
+private fun TubaCard(profile: InstrumentProfile?, profiles: List<InstrumentProfile>, actions: SetupActions) {
     Card(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -141,7 +149,7 @@ private fun TubaCard(profile: InstrumentProfile?, openProfiles: () -> Unit) {
                     Text(stringResource(R.string.practice_no_tuba), style = MaterialTheme.typography.titleMedium)
                 }
             }
-            TextButton(onClick = openProfiles) { Text(stringResource(R.string.practice_change)) }
+            TubaChoice(profile, profiles, actions)
         }
     }
 }
@@ -327,3 +335,40 @@ private val Direction.label: Int
         Direction.DOWN -> R.string.direction_down
         Direction.UP_DOWN -> R.string.direction_up_down
     }
+
+/** „ändern“: with several tubas a short list, the active one checked; otherwise straight to the instruments. */
+@Composable
+private fun TubaChoice(active: InstrumentProfile?, profiles: List<InstrumentProfile>, actions: SetupActions) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        TextButton(
+            onClick = { if (profiles.size > 1) open = true else actions.openProfiles() },
+            modifier = Modifier.testTag(TAG_PRACTICE_TUBA)
+        ) {
+            Text(stringResource(R.string.practice_change))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            for (p in profiles) {
+                DropdownMenuItem(
+                    text = { Text(p.name) },
+                    leadingIcon = {
+                        if (p.id == active?.id) Icon(Icons.Filled.Check, contentDescription = null)
+                    },
+                    onClick = {
+                        open = false
+                        actions.chooseProfile(p.id)
+                    },
+                    modifier = Modifier.testTag(TAG_PRACTICE_TUBA_ITEM + p.id)
+                )
+            }
+            HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.practice_manage_tubas)) },
+                onClick = {
+                    open = false
+                    actions.openProfiles()
+                }
+            )
+        }
+    }
+}

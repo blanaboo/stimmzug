@@ -45,7 +45,9 @@ Eine Zeile pro Versuch, vorne die Daten der Übung. Komma als Trenner, Punkt als
 | `audio_source` | Mikrofonquelle, z. B. `UNPROCESSED` |
 | `drone_route`, `drone_timbre` | Wo der Drone klang (`HEADPHONES` mit Gerätename, `SPEAKER`) und welcher Klang (`RECORDED`, `SYNTHETIC`) |
 | `ambient_db`, `threshold_db` | Raum- und Drone-Pegel der Kalibrierung und die Schwelle des Pegel-Gates in dBFS |
-| `warm_up` | Antwort auf den Einspiel-Hinweis (#44), leer solange es ihn nicht gibt |
+| `warm_up` | Antwort auf den Einspiel-Hinweis des Tages (#44): `WARMED_UP` („Bin eingespielt“), `WARMED_UP_NOW` (mit der Einspiel-Uhr der App), leer ohne Antwort an diesem Tag |
+| `warm_up_sec` | wie lange die Einspiel-Uhr lief |
+| `warm_up_age_min` | Minuten von der Antwort bis zum Beginn dieser Übung |
 | `exercise` | Übung, z. B. `KEY_NOTES B-Dur Kontra-F–kleines f UP` |
 | `attempt` | laufende Nummer des Versuchs in der Übung, um Ermüdung zu sehen |
 | `index` | Position des Tons in der Übung |
@@ -61,3 +63,14 @@ Eine Zeile pro Versuch, vorne die Daten der Übung. Komma als Trenner, Punkt als
 | `listened_s` | Hörzeit: vom Ende des Vorhörens bis zum Treffer oder Ende des Versuchs |
 | `display` | Anzeige beim Spielen: `EAR`, `TUNER` oder `MIXED` (gewechselt). Wer die Nadel sieht, korrigiert schneller. |
 | `drone` | Drone lief (bisher immer `true`) |
+
+## Einspielen (#44)
+
+Vor der ersten Übung des Tages fragt die App „Schon eingespielt?“. Eine kalte Tuba liegt leicht 10–20 Cent zu tief,
+grob 3 Cent pro Grad Lufttemperatur im Rohr, und der Ansatz braucht ein paar Minuten.
+
+- **„Bin eingespielt“** startet die Übung.
+- **„Jetzt einspielen“** öffnet die Einspiel-Uhr. „Eingespielt – Übung starten“ beendet sie und startet die Übung.
+
+Die Antwort gilt bis Mitternacht. Jede Übung des Tages trägt sie mit ihrem Alter in Minuten. So erkennt die
+Auswertung (#38), ob Abweichungen am Anfang vom Einspielen kommen.

@@ -113,6 +113,14 @@
     <string name="practice_title">Üben</string>
     <string name="practice_today_with">Heute mit</string>
     <string name="practice_change">ändern</string>
+    <string name="practice_manage_tubas">Instrumente verwalten</string>
+    <string name="warm_up_title">Schon eingespielt?</string>
+    <string name="warm_up_text">Vor der ersten Übung des Tages: Der Ansatz braucht ein paar Minuten, und eine kalte Tuba klingt zu tief – grob 3 Cent pro Grad, kalt leicht 10–20 Cent. Ohne Einspielen misst die App vor allem die Temperatur.</string>
+    <string name="warm_up_ready">Bin eingespielt</string>
+    <string name="warm_up_now">Jetzt einspielen</string>
+    <string name="warm_up_screen_title">Einspielen</string>
+    <string name="warm_up_tips">Lange Töne, Bindungen, Tonleitern: leise beginnen, dann über den ganzen Umfang. Ein paar Minuten genügen, bis Ansatz und Tuba warm sind.</string>
+    <string name="warm_up_done">Eingespielt – Übung starten</string>
     <string name="practice_no_tuba">Noch keine Tuba angelegt</string>
     <string name="practice_exercise">Übung</string>
     <string name="kind_key_notes">Töne aus Tonart</string>
