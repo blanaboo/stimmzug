@@ -12,6 +12,8 @@ data class MatchConfig(
     val minClarity: Double = 0.8,
     /** Median smoothing over this many player frames (5 frames = 100 ms at the 20 ms hop). */
     val medianFrames: Int = 5,
+    /** The entry deviation is the median of the raw deviations in this time after the player is first heard (#37). */
+    val entrySec: Double = 0.5,
     /** The drone sounds alone first so the player can hear the note; frames are ignored meanwhile. */
     val preListenSec: Double = 1.0,
     /** Confirmation after the hit (bell, green ring, drone fades out). */
@@ -24,8 +26,8 @@ data class MatchConfig(
             "tolerance must be in (0, $SAME_NOTE_CENTS) cents, was $toleranceCents"
         }
         require(holdSec > 0.0) { "hold time must be positive, was $holdSec" }
-        require(graceSec >= 0.0 && preListenSec >= 0.0 && confirmSec >= 0.0 && pauseSec >= 0.0) {
-            "grace, pre-listen, confirm and pause times must not be negative"
+        require(graceSec >= 0.0 && entrySec >= 0.0 && preListenSec >= 0.0 && confirmSec >= 0.0 && pauseSec >= 0.0) {
+            "grace, entry, pre-listen, confirm and pause times must not be negative"
         }
         require(minClarity in 0.0..1.0) { "minimum clarity must be in 0..1, was $minClarity" }
         require(medianFrames >= 1) { "median window must hold at least one frame, was $medianFrames" }
@@ -94,12 +96,14 @@ data class NoteResult(
     val hit: Boolean,
     /** From the end of the pre-listen phase to the hit, `null` without a hit. */
     val timeToHitSec: Double?,
-    /** Median deviation of the first player frames: where the player started. */
+    /** Median raw deviation in the first [MatchConfig.entrySec] after the player is heard: where they started. */
     val entryCents: Double?,
     /** Mean and standard deviation of the smoothed deviation during the hold that led to the hit. */
     val holdMeanCents: Double?,
     val holdSpreadCents: Double?,
     /** Time the player was heard in another octave or on another note. */
     val wrongOctaveSec: Double,
-    val wrongNoteSec: Double
+    val wrongNoteSec: Double,
+    /** From the end of the pre-listen phase to the hit, or to the last frame of an attempt without a hit. */
+    val listenedSec: Double = 0.0
 )

@@ -62,6 +62,13 @@ data class ExerciseChoice(
         return runCatching { ExerciseSequencer.notesOf(exercise, instrument) }.getOrDefault(emptyList())
     }
 
+    /** The choice in one line for the session log (#37), e.g. "KEY_NOTES B-Dur Kontra-F–kleines f UP". */
+    val logText: String
+        get() {
+            val range = "${NoteNames.germanOctaveName(lowMidi)}–${NoteNames.germanOctaveName(highMidi)}"
+            return "$kind $keyName $range $direction"
+        }
+
     /** "B-Dur", the German name of the key. */
     val keyName: String get() = keyName(tonicPitchClass)
 

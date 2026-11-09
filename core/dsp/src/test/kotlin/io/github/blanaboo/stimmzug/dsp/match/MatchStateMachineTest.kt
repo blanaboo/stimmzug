@@ -122,8 +122,8 @@ class MatchStateMachineTest {
         val enteredAt = r.statuses.first { it.phase == MatchPhase.IN_RANGE }.timeSec
         assertTrue(enteredAt in 1.5..1.6, "entered the range at $enteredAt")
         assertEquals(enteredAt + 3.0, r.hitTime!!, 1e-6)
-        // Median of the first five raw deviations: the start of the glide.
-        assertEquals(-37.33, r.result.entryCents!!, 0.01)
+        // Median of the raw deviations in the first 0.5 s (26 frames): the middle of the first half of the glide.
+        assertEquals(-23.33, r.result.entryCents!!, 0.01)
         assertEquals(MatchPhase.LISTENING, r.phaseAt(1.2))
         assertEquals(PitchVerdict.FLAT, r.statuses.first { it.timeSec >= 1.2 - 1e-9 }.verdict)
     }
@@ -167,7 +167,9 @@ class MatchStateMachineTest {
 
     @Test
     fun `hold statistics describe the successful hold`() {
-        val steady = run { 3.0 }.result
+        val steadyRun = run { 3.0 }
+        val steady = steadyRun.result
+        assertEquals(steadyRun.hitTime!! - 1.0, steady.listenedSec, 1e-6)
         assertEquals(3.0, steady.holdMeanCents!!, 1e-9)
         assertEquals(0.0, steady.holdSpreadCents!!, 1e-6)
         assertEquals(3.0, steady.entryCents!!, 1e-9)
@@ -179,6 +181,7 @@ class MatchStateMachineTest {
         assertEquals(2.0, wobbly.holdSpreadCents!!, 0.03)
 
         val missed = run { 30.0 }.result
+        assertEquals(7.0, missed.listenedSec, 1e-6)
         assertNull(missed.timeToHitSec)
         assertNull(missed.holdMeanCents)
         assertNull(missed.holdSpreadCents)

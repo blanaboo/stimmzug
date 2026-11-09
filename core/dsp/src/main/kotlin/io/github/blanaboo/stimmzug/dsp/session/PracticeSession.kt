@@ -1,5 +1,6 @@
 package io.github.blanaboo.stimmzug.dsp.session
 
+import io.github.blanaboo.stimmzug.dsp.level.CalibrationResult
 import io.github.blanaboo.stimmzug.dsp.level.LevelCalibration
 import io.github.blanaboo.stimmzug.dsp.level.NoteLevelGate
 import io.github.blanaboo.stimmzug.dsp.match.MatchPhase
@@ -45,12 +46,19 @@ class PracticeSession(
 
     // Whether the current attempt at the note was hit; a note played again after back() starts unhit.
     private var hitThisNote = false
+    private val attempts = ArrayList<NoteAttempt>()
+    private var attemptOpen = false
+    private var attemptStart = 0.0
     private var finishedAt: Double? = null
 
     init {
         require(notes.isNotEmpty()) { "a session needs at least one note" }
         tracker.targetHz = frequency(0)
     }
+
+    /** Room and drone level measured in the calibration, `null` before it ends. */
+    var calibrationResult: CalibrationResult? = null
+        private set
 
     /** Current input time in seconds. */
     val timeSec: Double get() = tracker.samplesProcessed / sampleRate
@@ -89,6 +97,7 @@ class PracticeSession(
     /** Stops the drone and ignores the input until [resume]. */
     fun pause() {
         if (phase != SessionPhase.PLAYING) return
+        closeAttempt(NoteStatus.STOPPED)
         phase = SessionPhase.PAUSED
         stopDrone()
     }
@@ -104,6 +113,7 @@ class PracticeSession(
     fun skip() {
         if (phase != SessionPhase.PLAYING && phase != SessionPhase.PAUSED) return
         if (!hitThisNote && outcomes[index].status != NoteStatus.HIT) record(NoteStatus.SKIPPED)
+        closeAttempt(NoteStatus.SKIPPED)
         phase = SessionPhase.PLAYING
         nextNote()
     }
@@ -111,6 +121,7 @@ class PracticeSession(
     /** Plays the previous note again (the current one on the first note). Its earlier outcome is replaced. */
     fun back() {
         if (phase != SessionPhase.PLAYING && phase != SessionPhase.PAUSED) return
+        closeAttempt(NoteStatus.SKIPPED)
         if (index > 0) index--
         phase = SessionPhase.PLAYING
         startNote()
@@ -122,10 +133,11 @@ class PracticeSession(
         if (phase != SessionPhase.CALIBRATING && !hitThisNote && outcomes[index].status != NoteStatus.HIT) {
             record(NoteStatus.STOPPED)
         }
+        closeAttempt(NoteStatus.STOPPED)
         finish()
     }
 
-    fun summary(): SessionSummary = SessionSummary(outcomes.toList(), finishedAt ?: timeSec)
+    fun summary(): SessionSummary = SessionSummary(outcomes.toList(), finishedAt ?: timeSec, attempts.toList())
 
     private fun onFrame(frame: PitchFrame) {
         when (phase) {
@@ -138,7 +150,9 @@ class PracticeSession(
     private fun calibrate(frame: PitchFrame) {
         if (frame.timeSec >= config.calibrationSettleSec) calibration.add(frame.estimate.levelDb)
         if (frame.timeSec >= config.calibrationSec) {
-            gate = NoteLevelGate(calibration.result())
+            val result = calibration.result()
+            calibrationResult = result
+            gate = NoteLevelGate(result)
             phase = SessionPhase.PLAYING
             startNote()
         }
@@ -151,6 +165,7 @@ class PracticeSession(
         if (now.phase == MatchPhase.HIT && !hitThisNote) {
             hitThisNote = true
             record(NoteStatus.HIT)
+            closeAttempt(NoteStatus.HIT)
             drone.playConfirmation()
             stopDrone()
         }
@@ -165,6 +180,8 @@ class PracticeSession(
         checkNotNull(gate) { "calibration missing" }.startNote(t)
         status = null
         hitThisNote = false
+        attemptOpen = true
+        attemptStart = t
         playDrone(hz)
     }
 
@@ -182,6 +199,21 @@ class PracticeSession(
 
     private fun record(noteStatus: NoteStatus) {
         outcomes[index] = outcomes[index].copy(status = noteStatus, result = machine.result())
+    }
+
+    /** Ends the open attempt at the current note, if there is one. */
+    private fun closeAttempt(noteStatus: NoteStatus) {
+        if (!attemptOpen) return
+        attemptOpen = false
+        attempts += NoteAttempt(
+            number = attempts.size + 1,
+            index = index,
+            midi = notes[index],
+            targetHz = frequency(index),
+            startSec = attemptStart,
+            status = noteStatus,
+            result = machine.result()
+        )
     }
 
     private fun playDrone(hz: Double) {

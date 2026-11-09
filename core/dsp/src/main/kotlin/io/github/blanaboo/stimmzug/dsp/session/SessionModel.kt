@@ -77,6 +77,27 @@ data class NoteOutcome(
     val result: NoteResult?
 )
 
+/**
+ * One attempt at a note (#37): a note played once, from the start of its drone to the hit or until the player
+ * moves on. Playing a note again after [PracticeSession.back] or a pause is a new attempt.
+ */
+data class NoteAttempt(
+    /** 1, 2, … in the order of the session, to see fatigue. */
+    val number: Int,
+    /** Position of the note in the exercise. */
+    val index: Int,
+    val midi: Int,
+    val targetHz: Double,
+    /** Session time when the note started (drone on, pre-listen begins). */
+    val startSec: Double,
+    /**
+     * [NoteStatus.HIT]; [NoteStatus.SKIPPED] when the player went on or back; [NoteStatus.STOPPED] when the session
+     * was stopped or paused during the attempt.
+     */
+    val status: NoteStatus,
+    val result: NoteResult
+)
+
 /** Everything a screen shows at one moment. */
 data class SessionSnapshot(
     val timeSec: Double,
@@ -95,7 +116,12 @@ data class SessionSnapshot(
 )
 
 /** Result of a whole session. */
-data class SessionSummary(val outcomes: List<NoteOutcome>, val durationSec: Double) {
+data class SessionSummary(
+    val outcomes: List<NoteOutcome>,
+    val durationSec: Double,
+    /** Every attempt in order, also repeated notes (#37). */
+    val attempts: List<NoteAttempt> = emptyList()
+) {
     val hits: Int get() = outcomes.count { it.status == NoteStatus.HIT }
 
     /** Mean time from the end of the pre-listen to the hit, over the hit notes. */

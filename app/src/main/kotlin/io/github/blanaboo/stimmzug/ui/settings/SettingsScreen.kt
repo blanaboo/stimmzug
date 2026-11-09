@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,12 +50,16 @@ const val TAG_SETTINGS_TOLERANCE = "settings_tolerance"
 const val TAG_SETTINGS_HOLD = "settings_hold"
 const val TAG_SETTINGS_HOLD_VALUE = "settings_hold_value"
 const val TAG_SETTINGS_RESET = "settings_reset"
+const val TAG_SETTINGS_LOG = "settings_log"
+const val TAG_SETTINGS_EXPORT = "settings_export"
 
 /** What the settings screen can do. */
 class SettingsActions(
     val back: () -> Unit = {},
     val update: ((PracticeSettings) -> PracticeSettings) -> Unit = {},
-    val reset: () -> Unit = {}
+    val reset: () -> Unit = {},
+    /** Shares the session log as CSV (#37). */
+    val exportLog: () -> Unit = {}
 )
 
 /** A whole-number setting shown as a snapping slider. */
@@ -103,10 +108,15 @@ private val TIMBRE_OPTIONS = listOf(
     ChoiceOption(DroneTimbre.SYNTHETIC, R.string.timbre_synthetic, R.string.timbre_synthetic_hint)
 )
 
-/** Practice settings (#68). [settings] is `null` while loading. */
+/** Practice settings (#68) and the session log (#37). [settings] and [logCount] are `null` while loading. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(settings: PracticeSettings?, actions: SettingsActions, modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    settings: PracticeSettings?,
+    actions: SettingsActions,
+    modifier: Modifier = Modifier,
+    logCount: Int? = null
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -120,12 +130,17 @@ fun SettingsScreen(settings: PracticeSettings?, actions: SettingsActions, modifi
             )
         }
     ) { padding ->
-        if (settings != null) SettingsContent(settings, actions, padding)
+        if (settings != null) SettingsContent(settings, logCount, actions, padding)
     }
 }
 
 @Composable
-private fun SettingsContent(settings: PracticeSettings, actions: SettingsActions, padding: PaddingValues) {
+private fun SettingsContent(
+    settings: PracticeSettings,
+    logCount: Int?,
+    actions: SettingsActions,
+    padding: PaddingValues
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -143,6 +158,8 @@ private fun SettingsContent(settings: PracticeSettings, actions: SettingsActions
         ChoiceSetting(R.string.settings_timbre, TIMBRE_OPTIONS, settings.droneTimbre) { timbre ->
             actions.update { it.copy(droneTimbre = timbre) }
         }
+        HorizontalDivider()
+        LogSection(logCount, actions.exportLog)
         HorizontalDivider()
         OutlinedButton(onClick = actions.reset, modifier = Modifier.fillMaxWidth().testTag(TAG_SETTINGS_RESET)) {
             Text(stringResource(R.string.settings_reset))
@@ -219,5 +236,34 @@ private fun <T> ChoiceSetting(
 private fun SettingsScreenPreview() {
     StimmzugTheme(darkTheme = true) {
         SettingsScreen(PracticeSettings(), SettingsActions())
+    }
+}
+
+/** The session log (#37): how many sessions it holds and sharing it as CSV. */
+@Composable
+private fun LogSection(count: Int?, export: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.log_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            when (count) {
+                null -> ""
+                0 -> stringResource(R.string.log_empty)
+                else -> pluralStringResource(R.plurals.log_count, count, count)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.testTag(TAG_SETTINGS_LOG)
+        )
+        Text(
+            stringResource(R.string.log_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        OutlinedButton(
+            onClick = export,
+            enabled = (count ?: 0) > 0,
+            modifier = Modifier.fillMaxWidth().testTag(TAG_SETTINGS_EXPORT)
+        ) {
+            Text(stringResource(R.string.log_export))
+        }
     }
 }

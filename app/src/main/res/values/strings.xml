@@ -98,6 +98,15 @@
     <string name="timbre_synthetic">Synthetisch</string>
     <string name="timbre_synthetic_hint">Ein einfaches Modell: gleichmäßiger Klang, der sich von Ton zu Ton nur langsam ändert.</string>
     <string name="settings_reset">Standard wiederherstellen</string>
+    <string name="log_title">Übungsprotokoll</string>
+    <string name="log_empty">Noch keine Übung gespeichert.</string>
+    <plurals name="log_count">
+        <item quantity="one">Eine Übung gespeichert</item>
+        <item quantity="other">%1$d Übungen gespeichert</item>
+    </plurals>
+    <string name="log_hint">Jeder Ton mit Ergebnis, Einstieg und Haltewerten. Bleibt auf dem Handy, bis du es teilst.</string>
+    <string name="log_export">Als CSV teilen</string>
+    <string name="log_share_title">Übungsprotokoll teilen</string>
 
     <!-- Practice screen (#67) -->
     <string name="home_practice">Üben</string>

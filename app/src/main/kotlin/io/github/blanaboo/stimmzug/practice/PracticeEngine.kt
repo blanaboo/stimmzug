@@ -8,6 +8,7 @@ import io.github.blanaboo.stimmzug.dsp.session.SessionSnapshot
 import io.github.blanaboo.stimmzug.dsp.session.SessionSummary
 import java.io.Closeable
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,9 +33,12 @@ class PracticeEngine(
     private val session: PracticeSession,
     private val input: AudioInput,
     private val route: () -> OutputRoute = { OutputRoute.UNKNOWN },
-    private val onClose: () -> Unit = {}
+    private val onClose: () -> Unit = {},
+    /** Called once with the final summary: when the session finishes, or on [close] if it did not (#37). */
+    private val onEnd: (SessionSummary) -> Unit = {}
 ) : Closeable {
     private val commands = ConcurrentLinkedQueue<(PracticeSession) -> Unit>()
+    private val ended = AtomicBoolean(false)
     private val _state = MutableStateFlow(EngineState(session.snapshot))
     private var processedNanos = 0L
     private var audioNanos = 0L
@@ -67,17 +71,28 @@ class PracticeEngine(
         processedNanos += System.nanoTime() - start
         audioNanos += count * NANOS_PER_SECOND / input.sampleRate
         val finished = snapshot.phase == SessionPhase.FINISHED
+        val summary = if (finished) _state.value.summary ?: session.summary() else null
         _state.value = _state.value.copy(
             snapshot = snapshot,
             route = route(),
-            summary = if (finished) _state.value.summary ?: session.summary() else null,
+            summary = summary,
             load = if (audioNanos > 0) processedNanos.toDouble() / audioNanos else null
         )
+        if (summary != null) end(summary)
     }
 
     override fun close() {
         input.close()
+        // The input thread has stopped: the session can be finished here if the player left in the middle.
+        if (!ended.get()) {
+            session.stop()
+            end(session.summary())
+        }
         onClose()
+    }
+
+    private fun end(summary: SessionSummary) {
+        if (ended.compareAndSet(false, true)) onEnd(summary)
     }
 
     private companion object {

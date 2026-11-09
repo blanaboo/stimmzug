@@ -2,7 +2,9 @@ package io.github.blanaboo.stimmzug.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +27,8 @@ import io.github.blanaboo.stimmzug.ui.profile.ProfilesViewModel
 import io.github.blanaboo.stimmzug.ui.settings.SettingsActions
 import io.github.blanaboo.stimmzug.ui.settings.SettingsScreen
 import io.github.blanaboo.stimmzug.ui.settings.SettingsViewModel
+import io.github.blanaboo.stimmzug.ui.settings.shareLog
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -77,17 +81,28 @@ fun StimmzugNavHost(versionName: String, modifier: Modifier = Modifier) {
                 )
             )
         }
-        composable<SettingsRoute> {
-            val practice: SettingsViewModel = viewModel()
-            val settings by practice.settings.collectAsStateWithLifecycle()
-            SettingsScreen(
-                settings = settings,
-                actions = SettingsActions(back = {
-                    nav.popBackStack()
-                }, update = practice::update, reset = practice::reset)
-            )
-        }
+        composable<SettingsRoute> { SettingsEntry(nav) }
     }
+}
+
+/** The settings, with sharing the session log as CSV (#37). */
+@Composable
+private fun SettingsEntry(nav: NavHostController) {
+    val practice: SettingsViewModel = viewModel()
+    val settings by practice.settings.collectAsStateWithLifecycle()
+    val logCount by practice.logCount.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    SettingsScreen(
+        settings = settings,
+        logCount = logCount,
+        actions = SettingsActions(
+            back = { nav.popBackStack() },
+            update = practice::update,
+            reset = practice::reset,
+            exportLog = { scope.launch { practice.exportLog()?.let { shareLog(context, it) } } }
+        )
+    )
 }
 
 /** The start screen with the active tuba and the reference note at the chosen a'. */
